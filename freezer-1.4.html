@@ -1016,6 +1016,27 @@
       </div>
     </div>
 
+    <div id="box-action-modal-mask" class="modal-mask hidden" onclick="closeBoxActionModal(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div id="box-action-modal-title" class="modal-head">容器操作</div>
+        <div class="modal-body">
+          <div id="box-action-rename-wrap" class="modal-field hidden">
+            <label>容器名称</label>
+            <input id="box-action-name" type="text" placeholder="请输入新的容器名称" />
+          </div>
+          <div id="box-action-move-wrap" class="modal-field hidden">
+            <label>目标文件夹</label>
+            <select id="box-action-folder"></select>
+          </div>
+          <div id="box-action-delete-wrap" class="modal-field hidden">确定删除该容器及其内所有样本吗？</div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn" onclick="closeBoxActionModal()">取消</button>
+          <button id="box-action-confirm-btn" class="btn primary" onclick="submitBoxActionModal()">确定</button>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <script>
@@ -1050,6 +1071,7 @@
     let collapsedNavExpandedFolders = new Set();
     let collapsedOverviewFolders = new Set();
     let collapsedOverviewBoxes = new Set();
+    let boxActionState = { type: null, boxId: null };
     let gridZoom = 1;
     let zoomControlDragging = null;
     const savedEnabledState = localStorage.getItem(AUTO_BACKUP_ENABLED_KEY);
@@ -2112,7 +2134,14 @@
           const boxDiv = document.createElement('div');
           boxDiv.className = `item tree-item ${currentBoxId === bid ? 'active' : ''}`;
           boxDiv.style.borderLeftColor = getFolderColor(fid);
-          boxDiv.innerHTML = `<div class="item-info" style="padding-left:${(depth + 1) * 12}px"><span class="tree-arrow">▸</span>${b.name}<span class="item-tag">${b.rows}x${b.cols}</span></div>`;
+          boxDiv.innerHTML = `
+            <div class="item-info" style="padding-left:${(depth + 1) * 12}px"><span class="tree-arrow">▸</span>${b.name}<span class="item-tag">${b.rows}x${b.cols}</span></div>
+            <div>
+              <button class="mini-btn" title="重命名容器" onclick="openBoxActionModal('rename','${bid}',event)">✎</button>
+              <button class="mini-btn" title="移动到其他文件夹" onclick="openBoxActionModal('move','${bid}',event)">📁</button>
+              <button class="mini-btn danger" title="删除容器" onclick="openBoxActionModal('delete','${bid}',event)">✕</button>
+            </div>
+          `;
           boxDiv.onclick = () => { searchHighlightPos = null; switchBox(bid); };
           list.appendChild(boxDiv);
         });
@@ -2196,42 +2225,86 @@
       updateOverview();
     }
 
-    function moveBoxFolder(id, e) {
-      e.stopPropagation();
-      const box = db.boxes[id];
+    function openBoxActionModal(type, boxId, e) {
+      if (e) e.stopPropagation();
+      const box = db.boxes[boxId];
       if (!box) return;
-      const options = Object.keys(db.folders)
-        .map((fid, idx) => `${idx + 1}. ${db.folders[fid].name}${fid === box.folderId ? '（当前）' : ''}`)
-        .join('\n');
-      const input = prompt(`请选择目标文件夹序号：
-${options}`);
-      if (!input) return;
-      const n = Number(input);
-      const folderIds = Object.keys(db.folders);
-      if (!Number.isInteger(n) || n < 1 || n > folderIds.length) return alert('输入序号无效。');
-      const targetId = folderIds[n - 1];
-      if (targetId === box.folderId) return;
-      box.folderId = targetId;
-      save();
-      renderFolderList();
-      renderBoxFolderStrip();
-      renderBoxList();
-      renderOverviewFolderStrip();
-      updateOverview();
+      boxActionState = { type, boxId };
+
+      const mask = document.getElementById('box-action-modal-mask');
+      const title = document.getElementById('box-action-modal-title');
+      const renameWrap = document.getElementById('box-action-rename-wrap');
+      const moveWrap = document.getElementById('box-action-move-wrap');
+      const deleteWrap = document.getElementById('box-action-delete-wrap');
+      const nameInput = document.getElementById('box-action-name');
+      const folderSel = document.getElementById('box-action-folder');
+      const confirmBtn = document.getElementById('box-action-confirm-btn');
+
+      renameWrap?.classList.add('hidden');
+      moveWrap?.classList.add('hidden');
+      deleteWrap?.classList.add('hidden');
+
+      if (type === 'rename') {
+        if (title) title.textContent = '重命名容器';
+        if (confirmBtn) confirmBtn.textContent = '保存';
+        renameWrap?.classList.remove('hidden');
+        if (nameInput) nameInput.value = box.name || '';
+        setTimeout(() => nameInput?.focus(), 30);
+      } else if (type === 'move') {
+        if (title) title.textContent = '移动容器';
+        if (confirmBtn) confirmBtn.textContent = '移动';
+        moveWrap?.classList.remove('hidden');
+        if (folderSel) {
+          const options = getOrderedFolderIds().map(fid => `<option value="${fid}">${getFolderPathName(fid)}</option>`);
+          folderSel.innerHTML = options.join('');
+          folderSel.value = box.folderId;
+        }
+      } else if (type === 'delete') {
+        if (title) title.textContent = '删除容器';
+        if (confirmBtn) confirmBtn.textContent = '删除';
+        deleteWrap?.classList.remove('hidden');
+      }
+
+      if (mask) mask.classList.remove('hidden');
     }
 
-    function deleteBox(id, e) {
-      e.stopPropagation();
-      if (!confirm(`确定删除容器【${db.boxes[id].name}】及其内所有样本吗？`)) return;
-      delete db.boxes[id];
-      if (currentBoxId === id) {
-        currentBoxId = null;
-        document.getElementById('grid').innerHTML = '';
-        document.getElementById('empty-tip').style.display = 'block';
-        updateBoxLocationBadge();
+    function closeBoxActionModal(e) {
+      if (e && e.target && e.target.id !== 'box-action-modal-mask') return;
+      const mask = document.getElementById('box-action-modal-mask');
+      if (mask) mask.classList.add('hidden');
+      boxActionState = { type: null, boxId: null };
+    }
+
+    function submitBoxActionModal() {
+      const { type, boxId } = boxActionState;
+      const box = db.boxes[boxId];
+      if (!type || !box) return closeBoxActionModal();
+
+      if (type === 'rename') {
+        const next = (document.getElementById('box-action-name')?.value || '').trim();
+        if (!next) return alert('请输入容器名称。');
+        box.name = next;
       }
-      selectedPositions.clear();
+
+      if (type === 'move') {
+        const targetId = document.getElementById('box-action-folder')?.value;
+        if (!targetId || !db.folders[targetId]) return alert('请选择有效位置文件夹。');
+        box.folderId = targetId;
+      }
+
+      if (type === 'delete') {
+        delete db.boxes[boxId];
+        if (currentBoxId === boxId) {
+          currentBoxId = null;
+          document.getElementById('grid').innerHTML = '';
+          document.getElementById('empty-tip').style.display = 'block';
+          updateBoxLocationBadge();
+        }
+        selectedPositions.clear();
+      }
+
       save();
+      closeBoxActionModal();
       renderFolderList();
       renderBoxFolderStrip();
       renderBoxList();
@@ -2240,6 +2313,14 @@ ${options}`);
       updateWarningBoard();
       renderOverviewFolderStrip();
       updateOverview();
+    }
+
+    function moveBoxFolder(id, e) {
+      openBoxActionModal('move', id, e);
+    }
+
+    function deleteBox(id, e) {
+      openBoxActionModal('delete', id, e);
     }
 
     function renderBoxList() {
@@ -2264,6 +2345,7 @@ ${options}`);
         div.innerHTML = `
           <div class="item-info"><span class="tree-arrow">▸</span>${b.name}<span class="item-tag">${b.rows}x${b.cols}</span>${currentFolderId === 'all' ? `<span class="item-tag">${folderName}</span>` : ''}</div>
           <div>
+            <button class="mini-btn" title="重命名容器" onclick="openBoxActionModal('rename','${id}',event)">✎</button>
             <button class="mini-btn" title="移动到其他文件夹" onclick="moveBoxFolder('${id}',event)">📁</button>
             <button class="mini-btn danger" title="删除容器" onclick="deleteBox('${id}',event)">✕</button>
           </div>
