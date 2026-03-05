@@ -77,13 +77,6 @@
       border-color: rgba(140,215,255,.8);
       box-shadow: 0 2px 8px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.12);
     }
-    .folder-chip.active {
-      color: #fff;
-      border-color: currentColor;
-      background: linear-gradient(135deg, rgba(24,144,255,.55), rgba(19,194,194,.3));
-      box-shadow: 0 0 0 1px rgba(255,255,255,.12) inset, 0 4px 12px rgba(24,144,255,.25);
-    }
-    .folder-chip.all.active { color: #8fd3ff; }
     .box-group-title {
       font-size: 12px;
       margin: 8px 0 6px;
@@ -806,11 +799,6 @@
       cursor: pointer;
       background: #fff;
       white-space: nowrap;
-    }
-    .overview-chip.active {
-      border-color: currentColor;
-      box-shadow: 0 0 0 1px rgba(0,0,0,.04) inset;
-      font-weight: 600;
     }
     .overview-scroll {
       max-height: calc(100vh - 230px);
@@ -1631,7 +1619,7 @@
         const label = `${fname} (${boxes.length})`;
         const prefix = prefixFor(depth, isLast);
 
-        html += `<div class="mini-tree-node folder ${currentFolderId === fid ? 'active' : ''}" onclick="handleCollapsedFolderClick('${fid}')" title="${getFolderPathName(fid)}"><span class="mini-tree-prefix">${prefix}</span><span class="mini-tree-arrow">${expanded ? '▾' : '▸'}</span><span class="mini-tree-text">${label}</span></div>`;
+        html += `<div class="mini-tree-node folder" onclick="handleCollapsedFolderClick('${fid}')" title="${getFolderPathName(fid)}"><span class="mini-tree-prefix">${prefix}</span><span class="mini-tree-arrow">${expanded ? '▾' : '▸'}</span><span class="mini-tree-text">${label}</span></div>`;
 
         if (!expanded) return;
 
@@ -1862,8 +1850,8 @@
       const strip = document.getElementById('overview-folder-strip');
       const folderIds = getOrderedFolderIds();
       strip.innerHTML = [
-        `<div class="overview-chip ${currentOverviewFolderId === 'all' ? 'active' : ''}" onclick="setOverviewFolderFilter('all')">全部文件夹</div>`,
-        ...folderIds.map(fid => `<div class="overview-chip ${currentOverviewFolderId === fid ? 'active' : ''}" style="color:${getFolderColor(fid)}" onclick="setOverviewFolderFilter('${fid}')">${getFolderPathName(fid)}</div>`)
+        `<div class="overview-chip" onclick="setOverviewFolderFilter('all')">全部文件夹</div>`,
+        ...folderIds.map(fid => `<div class="overview-chip" style="color:${getFolderColor(fid)}" onclick="setOverviewFolderFilter('${fid}')">${getFolderPathName(fid)}</div>`)
       ].join('');
     }
 
@@ -2223,11 +2211,11 @@
       const folderIds = getOrderedFolderIds();
       const total = Object.keys(db.boxes).length;
       strip.innerHTML = [
-        `<div class="folder-chip all ${currentFolderId === 'all' ? 'active' : ''}" onclick="setFolderFilter('all')">全部 · ${total}</div>`,
+        `<div class="folder-chip all" onclick="setFolderFilter('all')">全部 · ${total}</div>`,
         ...folderIds.map(fid => {
           const descendants = new Set(getDescendantFolderIds(fid));
           const count = Object.values(db.boxes).filter(b => descendants.has(b.folderId)).length;
-          return `<div class="folder-chip ${currentFolderId === fid ? 'active' : ''}" style="color:${getFolderColor(fid)}" onclick="setFolderFilter('${fid}')">${getFolderPathName(fid)} · ${count}</div>`;
+          return `<div class="folder-chip" style="color:${getFolderColor(fid)}" onclick="setFolderFilter('${fid}')">${getFolderPathName(fid)} · ${count}</div>`;
         })
       ].join('');
     }
