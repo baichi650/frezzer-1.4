@@ -358,6 +358,17 @@
     .folder-list { max-height: 280px; }
     .box-list { min-height: 180px; max-height: 280px; }
     .item.tree-item { background: rgba(17,42,69,.85); }
+    .item.tree-item.active {
+      background: linear-gradient(135deg, rgba(24,144,255,.7), rgba(19,194,194,.35));
+      border-color: #9dd9ff;
+      border-left-color: #b8e6ff !important;
+      box-shadow: 0 0 0 1px rgba(170,225,255,.35) inset, 0 4px 12px rgba(0,0,0,.25);
+    }
+    .item.tree-item.active .item-tag {
+      border-color: rgba(255,255,255,.5);
+      background: rgba(255,255,255,.2);
+      color: #fff;
+    }
     .tree-arrow { font-size: 11px; color: #9fd1ff; margin-right: 6px; }
     .tree-arrow-btn { cursor: pointer; user-select: none; display: inline-flex; width: 12px; justify-content: center; }
 
@@ -979,6 +990,23 @@
       </div>
     </div>
 
+    <div id="delete-folder-modal-mask" class="modal-mask hidden" onclick="closeDeleteFolderModal(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-head">删除文件夹</div>
+        <div class="modal-body">
+          <div id="delete-folder-tip" class="modal-field">确定删除该文件夹吗？</div>
+          <div id="delete-folder-target-wrap" class="modal-field hidden">
+            <label>容器迁移到</label>
+            <select id="delete-folder-target"></select>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn" onclick="closeDeleteFolderModal()">取消</button>
+          <button class="btn primary" onclick="submitDeleteFolderModal()">删除</button>
+        </div>
+      </div>
+    </div>
+
 
     <div id="add-box-modal-mask" class="modal-mask hidden" onclick="closeAddBoxModal(event)">
       <div class="modal" onclick="event.stopPropagation()">
@@ -1072,6 +1100,7 @@
     let collapsedOverviewFolders = new Set();
     let collapsedOverviewBoxes = new Set();
     let boxActionState = { type: null, boxId: null };
+    let folderDeleteState = { folderId: null, related: 0 };
     let gridZoom = 1;
     let zoomControlDragging = null;
     const savedEnabledState = localStorage.getItem(AUTO_BACKUP_ENABLED_KEY);
@@ -1982,28 +2011,66 @@
     function deleteFolder(id, e) {
       e.stopPropagation();
       if (id === 'default') return alert('默认位置不可删除。');
+      const folder = db.folders[id];
+      if (!folder) return;
       const related = Object.values(db.boxes).filter(b => b.folderId === id).length;
+      folderDeleteState = { folderId: id, related };
+
+      const tip = document.getElementById('delete-folder-tip');
+      const wrap = document.getElementById('delete-folder-target-wrap');
+      const target = document.getElementById('delete-folder-target');
+      if (tip) tip.textContent = `确定删除文件夹【${folder.name}】吗？`;
+
       if (related > 0) {
-        const target = prompt(`该文件夹下有 ${related} 个容器。
-请输入要迁移到的目标文件夹名称（留空取消）：`, db.folders.default?.name || '默认位置');
-        if (!target) return;
-        const targetId = Object.keys(db.folders).find(fid => db.folders[fid].name === target.trim());
-        if (!targetId) return alert('未找到目标文件夹名称，请重试。');
-        if (targetId === id) return alert('目标文件夹不能和待删除文件夹相同。');
+        wrap?.classList.remove('hidden');
+        if (tip) tip.textContent = `该文件夹下有 ${related} 个容器，删除前请先选择迁移目标。`;
+        if (target) {
+          const targetFolderIds = getOrderedFolderIds().filter(fid => fid !== id);
+          const options = targetFolderIds.map(fid => `<option value="${fid}">${getFolderPathName(fid)}</option>`);
+          target.innerHTML = options.join('');
+          target.value = (db.folders.default && id !== 'default' && targetFolderIds.includes('default'))
+            ? 'default'
+            : (targetFolderIds[0] || '');
+        }
+      } else {
+        wrap?.classList.add('hidden');
+      }
+
+      const mask = document.getElementById('delete-folder-modal-mask');
+      if (mask) mask.classList.remove('hidden');
+    }
+
+    function closeDeleteFolderModal(e) {
+      if (e && e.target && e.target.id !== 'delete-folder-modal-mask') return;
+      const mask = document.getElementById('delete-folder-modal-mask');
+      if (mask) mask.classList.add('hidden');
+      folderDeleteState = { folderId: null, related: 0 };
+    }
+
+    function submitDeleteFolderModal() {
+      const { folderId, related } = folderDeleteState;
+      if (!folderId || !db.folders[folderId]) return closeDeleteFolderModal();
+
+      if (related > 0) {
+        const targetId = document.getElementById('delete-folder-target')?.value;
+        if (!targetId || !db.folders[targetId] || targetId === folderId) return alert('请选择有效的迁移目标文件夹。');
         Object.values(db.boxes).forEach(box => {
-          if (box.folderId === id) box.folderId = targetId;
+          if (box.folderId === folderId) box.folderId = targetId;
         });
       }
-      if (!confirm(`确定删除文件夹【${db.folders[id].name}】吗？`)) return;
-      const fallbackParent = db.folders[id]?.parentId || null;
-      Object.keys(db.folders).forEach(fid => { if (db.folders[fid].parentId === id) db.folders[fid].parentId = fallbackParent; });
-      delete db.folders[id];
-      if (currentFolderId === id) currentFolderId = 'all';
+
+      const fallbackParent = db.folders[folderId]?.parentId || null;
+      Object.keys(db.folders).forEach(fid => { if (db.folders[fid].parentId === folderId) db.folders[fid].parentId = fallbackParent; });
+      delete db.folders[folderId];
+      if (currentFolderId === folderId) currentFolderId = 'all';
+
       save();
+      closeDeleteFolderModal();
       renderFolderOptions();
       renderFolderList();
       renderBoxFolderStrip();
       renderBoxList();
+      renderCollapsedNav();
       renderOverviewFolderStrip();
       updateOverview();
     }
@@ -2044,8 +2111,9 @@
       }
 
       const totalBoxes = Object.keys(db.boxes).length;
+      const activeDisplayFolderId = currentFolderId === 'all' ? (db.boxes[currentBoxId]?.folderId || null) : currentFolderId;
       const allItem = document.createElement('div');
-      allItem.className = `item tree-item ${currentFolderId === 'all' ? 'active' : ''}`;
+      allItem.className = `item tree-item ${currentFolderId === 'all' && !activeDisplayFolderId ? 'active' : ''}`;
       allItem.innerHTML = `<div class="item-info"><span class="tree-arrow">▾</span>全部位置</div><div class="item-tag">${totalBoxes}</div>`;
       allItem.onclick = () => setFolderFilter('all');
       list.appendChild(allItem);
@@ -2103,7 +2171,7 @@
         const expandable = childIds.length > 0 || folderBoxIds.length > 0;
 
         const div = document.createElement('div');
-        div.className = `item folder-item tree-item ${currentFolderId === fid ? 'active' : ''}`;
+        div.className = `item folder-item tree-item ${activeDisplayFolderId === fid ? 'active' : ''}`;
         div.style.borderLeftColor = getFolderColor(fid);
         const sortOps = folderSortMode && fid !== 'default'
           ? `<span class="folder-sort-ops"><button class="mini-btn" onclick="moveFolderOrder('${fid}',-1,event)">↑</button><button class="mini-btn" onclick="moveFolderOrder('${fid}',1,event)">↓</button></span>`
