@@ -2111,9 +2111,10 @@
       }
 
       const totalBoxes = Object.keys(db.boxes).length;
-      const currentBoxFolderId = db.boxes[currentBoxId]?.folderId || null;
+      const hasCurrentBox = !!(currentBoxId && db.boxes[currentBoxId]);
+      const currentBoxFolderId = hasCurrentBox ? (db.boxes[currentBoxId]?.folderId || null) : null;
       const allItem = document.createElement('div');
-      allItem.className = `item tree-item ${currentFolderId === 'all' ? 'active' : ''}`;
+      allItem.className = `item tree-item ${!hasCurrentBox && currentFolderId === 'all' ? 'active' : ''}`;
       allItem.innerHTML = `<div class="item-info"><span class="tree-arrow">▾</span>全部位置</div><div class="item-tag">${totalBoxes}</div>`;
       allItem.onclick = () => setFolderFilter('all');
       list.appendChild(allItem);
@@ -2171,7 +2172,7 @@
         const expandable = childIds.length > 0 || folderBoxIds.length > 0;
 
         const div = document.createElement('div');
-        const folderActive = currentFolderId === fid || currentBoxFolderId === fid;
+        const folderActive = hasCurrentBox ? (currentBoxFolderId === fid) : (currentFolderId === fid);
         div.className = `item folder-item tree-item ${folderActive ? 'active' : ''}`;
         div.style.borderLeftColor = getFolderColor(fid);
         const sortOps = folderSortMode && fid !== 'default'
