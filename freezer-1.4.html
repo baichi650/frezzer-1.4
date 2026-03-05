@@ -364,6 +364,53 @@
     }
     .tree-arrow { font-size: 11px; color: #9fd1ff; margin-right: 6px; }
     .tree-arrow-btn { cursor: pointer; user-select: none; display: inline-flex; width: 12px; justify-content: center; }
+    .nav-folder-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      font-weight: 700;
+    }
+    .nav-folder-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nav-folder-pill {
+      margin-left: auto;
+      border: 1px solid rgba(207,232,255,.38);
+      border-radius: 999px;
+      padding: 0 7px;
+      font-size: 11px;
+      color: #d7ecff;
+      background: rgba(255,255,255,.08);
+    }
+    .nav-tree-branch {
+      margin-left: 12px;
+      border-left: 1px solid rgba(146,199,246,.35);
+      padding-left: 10px;
+    }
+    .nav-box-row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 4px;
+      padding: 8px 10px;
+      margin-left: 12px;
+      border-left: 1px solid rgba(146,199,246,.35);
+    }
+    .nav-box-top { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .nav-box-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nav-box-meta {
+      font-size: 11px;
+      color: #a9d4f6;
+      padding-left: 24px;
+    }
+    .nav-more-btn {
+      margin-left: auto;
+      border: 1px solid rgba(184,223,255,.32);
+      border-radius: 6px;
+      background: rgba(255,255,255,.05);
+      color: #d6ecff;
+      padding: 1px 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
 
     .folder-sort-tip {
       font-size: 11px;
@@ -2087,6 +2134,23 @@
       }
     }
 
+    function openFolderQuickMenu(fid, e) {
+      if (e) e.stopPropagation();
+      const action = prompt('文件夹操作：输入 1 重命名，输入 2 删除', '1');
+      if (!action) return;
+      if (action === '1') return renameFolder(fid, { stopPropagation(){} });
+      if (action === '2') return deleteFolder(fid, { stopPropagation(){} });
+    }
+
+    function openBoxQuickMenu(bid, e) {
+      if (e) e.stopPropagation();
+      const action = prompt('容器操作：输入 1 重命名，输入 2 移动，输入 3 删除', '1');
+      if (!action) return;
+      if (action === '1') return openBoxActionModal('rename', bid);
+      if (action === '2') return openBoxActionModal('move', bid);
+      if (action === '3') return openBoxActionModal('delete', bid);
+    }
+
     function renderFolderList() {
       const list = document.getElementById('folder-list');
       list.innerHTML = '';
@@ -2168,12 +2232,16 @@
         const arrowClick = expandable ? `onclick="toggleFolderTreeExpand('${fid}',event)"` : '';
         div.innerHTML = `
           <div class="item-info" style="padding-left:${depth * 12}px">
-            <span class="tree-arrow tree-arrow-btn" ${arrowClick}>${arrow}</span>${folder.name}<span class="item-tag">${count}</span>${sortOps}
+            <div class="nav-folder-line">
+              <span class="tree-arrow tree-arrow-btn" ${arrowClick}>${arrow}</span>
+              <span>📁</span>
+              <span>文件夹</span>
+              <span class="nav-folder-name">${folder.name}</span>
+              <span class="nav-folder-pill">[ ${count} ]</span>
+              ${sortOps}
+            </div>
           </div>
-          <div>
-            <button class="mini-btn" title="重命名" onclick="renameFolder('${fid}',event)">✎</button>
-            <button class="mini-btn danger" title="删除" onclick="deleteFolder('${fid}',event)">🗑</button>
-          </div>
+          <button class="nav-more-btn" title="文件夹操作" onclick="openFolderQuickMenu('${fid}',event)">⋯</button>
         `;
         div.onpointerdown = () => startFolderLongPress(fid);
         div.onpointerup = cancelFolderLongPress;
@@ -2190,13 +2258,17 @@
           const boxDiv = document.createElement('div');
           boxDiv.className = `item tree-item ${currentBoxId === bid ? 'active' : ''}`;
           boxDiv.style.borderLeftColor = getFolderColor(fid);
+          const sampleCount = Object.values(b.vials || {}).filter(v => v?.name).length;
+          boxDiv.classList.add('nav-box-row');
           boxDiv.innerHTML = `
-            <div class="item-info" style="padding-left:${(depth + 1) * 12}px"><span class="tree-arrow">▸</span>${b.name}<span class="item-tag">${b.rows}x${b.cols}</span></div>
-            <div>
-              <button class="mini-btn" title="重命名容器" onclick="openBoxActionModal('rename','${bid}',event)">✎</button>
-              <button class="mini-btn" title="移动到其他文件夹" onclick="openBoxActionModal('move','${bid}',event)">📁</button>
-              <button class="mini-btn danger" title="删除容器" onclick="openBoxActionModal('delete','${bid}',event)">✕</button>
+            <div class="nav-box-top" style="padding-left:${(depth + 1) * 12}px">
+              <span class="tree-arrow">▸</span>
+              <span>📦</span>
+              <span>容器</span>
+              <span class="nav-box-name">${b.name}</span>
+              <button class="nav-more-btn" title="容器操作" onclick="openBoxQuickMenu('${bid}',event)">⋯</button>
             </div>
+            <div class="nav-box-meta">规格 ${b.rows}×${b.cols} · 样本 ${sampleCount}</div>
           `;
           boxDiv.onclick = () => { searchHighlightPos = null; switchBox(bid); };
           list.appendChild(boxDiv);
