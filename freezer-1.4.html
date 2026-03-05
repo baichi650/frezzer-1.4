@@ -1602,7 +1602,7 @@
       if (!wrap) return;
       const childrenMap = getFolderChildrenMap();
       let html = '<div class="mini-tree-title">位置树</div>';
-      html += `<div class="mini-tree-node folder ${isAllActive() ? 'active' : ''}" onclick="setFolderFilter('all')" title="全部位置"><span class="mini-tree-prefix"></span><span class="mini-tree-arrow">▾</span><span class="mini-tree-text">全部位置</span></div>`;
+      html += `<div class="mini-tree-node folder" onclick="setFolderFilter('all')" title="全部位置"><span class="mini-tree-prefix"></span><span class="mini-tree-arrow">▾</span><span class="mini-tree-text">全部位置</span></div>`;
 
       const prefixFor = (depth, isLast) => {
         if (depth <= 0) return '';
@@ -1620,7 +1620,7 @@
         const label = `${fname} (${boxes.length})`;
         const prefix = prefixFor(depth, isLast);
 
-        html += `<div class="mini-tree-node folder ${isFolderActive(fid) ? 'active' : ''}" onclick="handleCollapsedFolderClick('${fid}')" title="${getFolderPathName(fid)}"><span class="mini-tree-prefix">${prefix}</span><span class="mini-tree-arrow">${expanded ? '▾' : '▸'}</span><span class="mini-tree-text">${label}</span></div>`;
+        html += `<div class="mini-tree-node folder" onclick="handleCollapsedFolderClick('${fid}')" title="${getFolderPathName(fid)}"><span class="mini-tree-prefix">${prefix}</span><span class="mini-tree-arrow">${expanded ? '▾' : '▸'}</span><span class="mini-tree-text">${label}</span></div>`;
 
         if (!expanded) return;
 
@@ -1634,7 +1634,7 @@
           const bname = b.name || bid;
           const meta = `${b.rows || 8}x${b.cols || 12}`;
           const boxPrefix = prefixFor(depth + 1, idx === boxes.length - 1);
-          html += `<div class="mini-tree-node box ${isBoxActive(bid) ? 'active' : ''}" onclick="jumpCollapsedBox('${bid}')" title="${getFolderPathName(fid)} / ${bname}"><span class="mini-tree-prefix">${boxPrefix}</span><span class="mini-tree-arrow">├</span><span class="mini-tree-text">${bname} · ${meta}</span></div>`;
+          html += `<div class="mini-tree-node box ${currentBoxId === bid ? 'active' : ''}" onclick="jumpCollapsedBox('${bid}')" title="${getFolderPathName(fid)} / ${bname}"><span class="mini-tree-prefix">${boxPrefix}</span><span class="mini-tree-arrow">├</span><span class="mini-tree-text">${bname} · ${meta}</span></div>`;
         });
 
         if (!childFolders.length && !boxes.length) {
@@ -1805,30 +1805,6 @@
       return palette[Math.abs(hash) % palette.length];
     }
 
-    function isBoxActive(boxId) {
-      return !!boxId && currentBoxId === boxId;
-    }
-
-    function isFolderActive(folderId) {
-      return currentBoxId === null && currentFolderId === folderId;
-    }
-
-    function isAllActive() {
-      return currentBoxId === null && currentFolderId === 'all';
-    }
-
-    function clearCurrentBoxSelection() {
-      currentBoxId = null;
-      selectedPositions.clear();
-      searchHighlightPos = null;
-      const grid = document.getElementById('grid');
-      if (grid) grid.innerHTML = '';
-      const emptyTip = document.getElementById('empty-tip');
-      if (emptyTip) emptyTip.style.display = 'block';
-      updateBoxLocationBadge();
-      updatePanel();
-    }
-
     function expandFolderAncestors(folderId) {
       let cur = db.folders[folderId]?.parentId || null;
       const guard = new Set([folderId]);
@@ -1858,7 +1834,6 @@
 
     function setFolderFilter(folderId) {
       currentFolderId = folderId;
-      clearCurrentBoxSelection();
       if (folderId !== 'all') expandFolderAncestors(folderId);
       renderFolderList();
       renderBoxFolderStrip();
@@ -2126,7 +2101,7 @@
 
       const totalBoxes = Object.keys(db.boxes).length;
       const allItem = document.createElement('div');
-      allItem.className = `item tree-item ${isAllActive() ? 'active' : ''}`;
+      allItem.className = 'item tree-item';
       allItem.innerHTML = `<div class="item-info"><span class="tree-arrow">▾</span>全部位置</div><div class="item-tag">${totalBoxes}</div>`;
       allItem.onclick = () => setFolderFilter('all');
       list.appendChild(allItem);
@@ -2184,7 +2159,7 @@
         const expandable = childIds.length > 0 || folderBoxIds.length > 0;
 
         const div = document.createElement('div');
-        div.className = `item folder-item tree-item ${isFolderActive(fid) ? 'active' : ''}`;
+        div.className = 'item folder-item tree-item';
         div.style.borderLeftColor = getFolderColor(fid);
         const sortOps = folderSortMode && fid !== 'default'
           ? `<span class="folder-sort-ops"><button class="mini-btn" onclick="moveFolderOrder('${fid}',-1,event)">↑</button><button class="mini-btn" onclick="moveFolderOrder('${fid}',1,event)">↓</button></span>`
@@ -2213,7 +2188,7 @@
           const b = db.boxes[bid];
           if (!b) return;
           const boxDiv = document.createElement('div');
-          boxDiv.className = `item tree-item ${isBoxActive(bid) ? 'active' : ''}`;
+          boxDiv.className = `item tree-item ${currentBoxId === bid ? 'active' : ''}`;
           boxDiv.style.borderLeftColor = getFolderColor(fid);
           boxDiv.innerHTML = `
             <div class="item-info" style="padding-left:${(depth + 1) * 12}px"><span class="tree-arrow">▸</span>${b.name}<span class="item-tag">${b.rows}x${b.cols}</span></div>
@@ -2421,7 +2396,7 @@
         const b = db.boxes[id];
         const folderName = db.folders[b.folderId]?.name || '未分类';
         const div = document.createElement('div');
-        div.className = `item tree-item ${isBoxActive(id) ? 'active' : ''}`;
+        div.className = `item tree-item ${currentBoxId === id ? 'active' : ''}`;
         div.style.borderLeftColor = getFolderColor(b.folderId);
         div.innerHTML = `
           <div class="item-info"><span class="tree-arrow">▸</span>${b.name}<span class="item-tag">${b.rows}x${b.cols}</span>${currentFolderId === 'all' ? `<span class="item-tag">${folderName}</span>` : ''}</div>
