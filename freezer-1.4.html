@@ -740,7 +740,7 @@
       background: transparent;
       color: #8fc5ff;
       padding: 8px 14px;
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
       transition: .2s;
@@ -1065,7 +1065,7 @@
     <div id="collapsed-nav"></div>
         <section class="sidebar-panel" style="flex:1;">
       <input id="sidebar-search" class="sidebar-search" type="text" placeholder="🔎 搜索文件夹 / 容器..." data-i18n-placeholder="sidebar.search" oninput="handleUnifiedSidebarSearch()" />
-      <div class="folder-sort-tip">长按文件夹项可进入排序模式</div>
+      <div id="folder-sort-tip" class="folder-sort-tip">长按文件夹项可进入排序模式</div>
       <div id="folder-list" class="list folder-list"></div>
 
 
@@ -1118,7 +1118,7 @@
         </div>
 
         <div class="tool-row">
-          <span class="tool-label">快捷操作:</span>
+          <span id="label-quick-actions" class="tool-label">快捷操作:</span>
           <button class="tool-link-btn" onclick="changeBackupFolder()">更改目录</button>
           <button class="tool-link-btn" onclick="runImmediateBackup()">立即备份</button>
         </div>
@@ -1149,7 +1149,7 @@
         <div class="card">
           <div id="stats" class="stats">
             <span id="sel-count" style="display:none">0</span>
-            <div style="margin-top:6px;">全库总余量: <span id="total-inv" style="font-size:22px;font-weight:700;cursor:pointer;text-decoration:underline dotted;" title="点击查看该细胞所有库存位置" onclick="openInventoryLocationsModal()">0</span> 管</div>
+            <div style="margin-top:6px;"><span id="total-inv-label">全库总余量</span>: <span id="total-inv" style="font-size:22px;font-weight:700;cursor:pointer;text-decoration:underline dotted;" title="点击查看该细胞所有库存位置" onclick="openInventoryLocationsModal()">0</span> <span id="total-inv-unit">管</span></div>
           </div>
           <label id="label-cell-name">细胞名称 (Name)</label>
           <input id="cell-name" class="input" type="text" placeholder="例如: HEK293T" oninput="updateLiveStats()" />
@@ -1160,17 +1160,17 @@
           <div class="plain-action-wrap">
             <div class="plain-action-row single">
               <button class="plain-btn switch-btn off" onclick="toggleMultiSelectMode()" id="multi-select-btn">
-                <span>多选</span><span class="switch-indicator">关</span>
+                <span id="multi-select-label">多选</span><span id="multi-select-indicator" class="switch-indicator">关</span>
               </button>
             </div>
             <div id="label-edit" class="plain-action-title">编辑</div>
             <div class="plain-action-row">
-              <button class="plain-btn" onclick="copySelectedCells()">📋 <strong>复制</strong></button>
-              <button class="plain-btn" onclick="pasteToSelectedCells()">📥 <strong>粘贴</strong></button>
+              <button id="btn-copy" class="plain-btn" onclick="copySelectedCells()">📋 <strong>复制</strong></button>
+              <button id="btn-paste" class="plain-btn" onclick="pasteToSelectedCells()">📥 <strong>粘贴</strong></button>
             </div>
             <div id="label-submit" class="plain-action-title">提交</div>
-            <button class="plain-btn primary" style="margin-bottom:8px" onclick="saveBatch()">✅ <strong>保存</strong></button>
-            <button class="plain-btn" onclick="clearBatch()">⛔ <strong>出库</strong></button>
+            <button id="btn-save" class="plain-btn primary" style="margin-bottom:8px" onclick="saveBatch()">✅ <strong>保存</strong></button>
+            <button id="btn-clear" class="plain-btn" onclick="clearBatch()">⛔ <strong>出库</strong></button>
           </div>
         </div>
 
@@ -1404,13 +1404,13 @@
         sidebarSearch: '🔎 搜索文件夹 / 容器...', globalSearch: '🔎 全局搜索：细胞名/代数/条码',
         create: '+ 新建', viewGrid: '容器页面', viewOverview: '总览页面', toolbarExpand: '展开工具栏', toolbarCollapse: '收起工具栏',
         dataOps: '数据操作:', import: '导入', exportExcel: '导出Excel', exportJson: '导出备份JSON', autoBackup: '自动备份:', format: '格式:', freq: '频率:',
-        backupNow: '立即备份', backupAuth: '授权备份目录', backupOff: '关闭自动备份', advLog: '高级/日志（折叠，默认收起）',
-        cellName: '细胞名称 (Name)', cellP: '代数 (P)', cellDate: '冻存日期', edit: '编辑', submit: '提交', warnTitle: '⚠️ 低库存预警',
+        backupNow: '立即备份', backupAuth: '授权备份目录', backupOff: '关闭自动备份', advLog: '高级/日志（折叠，默认收起）', quickActions: '快捷操作:', folderSortTip: '长按文件夹项可进入排序模式',
+        cellName: '细胞名称 (Name)', cellP: '代数 (P)', cellDate: '冻存日期', edit: '编辑', submit: '提交', warnTitle: '⚠️ 低库存预警', totalInventory: '全库总余量', tubeUnit: '管', multiSelect: '多选', on: '开', off: '关', copy: '复制', paste: '粘贴', save: '保存', clear: '出库',
         overviewTitle: '📊 文件夹/容器总览', createTitle: '新建', createFolder: '新建文件夹', createBox: '新建容器',
         statusTitle: '点击进行开启/授权/关闭', tip: '提示', ok: '知道了', close: '关闭',
         locBadge: '位置: {folder} · 容器: {box} ({rows}x{cols})',
         msgSelectOne: '请先选中一个单元格后再查看全库位置。', msgNoName: '当前单元格没有细胞名称，无法查询库存位置。',
-        msgNoStock: '✅ 库存充足', msgRemain: '余{count}', inventoryTitle: '{name} · 库存位置（{count}）', inventoryEmpty: '未找到库存位置。',
+        msgNoStock: '✅ 库存充足', msgRemain: '余{count}', inventoryTitle: '{name} · 库存位置（{count}）', inventoryEmpty: '未找到库存位置。', backupUnsupported: '自动备份：浏览器不支持目录授权', backupDisabled: '自动备份：已关闭', backupReady: '自动备份：已授权', backupPending: '自动备份：授权待恢复', backupUnauthorized: '自动备份：未授权目录',
         copyNeedBox: '请先选择容器。', copyNeedCell: '请先选择单元格。', pasteNeedCell: '请先选择粘贴目标单元格。',
         saveNeedCell: '请先选择格子。', clearNeedCell: '请先选择需要出库的单元格。'
       },
@@ -1418,13 +1418,13 @@
         sidebarSearch: '🔎 Search folders / boxes...', globalSearch: '🔎 Global search: name / passage / barcode',
         create: '+ New', viewGrid: 'Box View', viewOverview: 'Overview', toolbarExpand: 'Expand Toolbar', toolbarCollapse: 'Collapse Toolbar',
         dataOps: 'Data:', import: 'Import', exportExcel: 'Export Excel', exportJson: 'Export Backup JSON', autoBackup: 'Auto Backup:', format: 'Format:', freq: 'Frequency:',
-        backupNow: 'Backup Now', backupAuth: 'Authorize Backup Folder', backupOff: 'Disable Auto Backup', advLog: 'Advanced / Logs (collapsed by default)',
-        cellName: 'Cell Name', cellP: 'Passage (P)', cellDate: 'Freeze Date', edit: 'Edit', submit: 'Apply', warnTitle: '⚠️ Low Stock Alert',
+        backupNow: 'Backup Now', backupAuth: 'Authorize Backup Folder', backupOff: 'Disable Auto Backup', advLog: 'Advanced / Logs (collapsed by default)', quickActions: 'Quick Actions:', folderSortTip: 'Long press a folder item to enter sort mode',
+        cellName: 'Cell Name', cellP: 'Passage (P)', cellDate: 'Freeze Date', edit: 'Edit', submit: 'Apply', warnTitle: '⚠️ Low Stock Alert', totalInventory: 'Total Inventory', tubeUnit: 'tubes', multiSelect: 'Multi-select', on: 'ON', off: 'OFF', copy: 'Copy', paste: 'Paste', save: 'Save', clear: 'Clear',
         overviewTitle: '📊 Folder / Box Overview', createTitle: 'Create', createFolder: 'New Folder', createBox: 'New Box',
         statusTitle: 'Click to enable/authorize/disable', tip: 'Notice', ok: 'OK', close: 'Close',
         locBadge: 'Location: {folder} · Box: {box} ({rows}x{cols})',
         msgSelectOne: 'Select exactly one cell before checking global locations.', msgNoName: 'Selected cell has no name, unable to query inventory locations.',
-        msgNoStock: '✅ Stock is sufficient', msgRemain: '{count} left', inventoryTitle: '{name} · Inventory Locations ({count})', inventoryEmpty: 'No inventory locations found.',
+        msgNoStock: '✅ Stock is sufficient', msgRemain: '{count} left', inventoryTitle: '{name} · Inventory Locations ({count})', inventoryEmpty: 'No inventory locations found.', backupUnsupported: 'Auto backup: browser directory permission is unsupported', backupDisabled: 'Auto backup: disabled', backupReady: 'Auto backup: authorized', backupPending: 'Auto backup: authorization pending restore', backupUnauthorized: 'Auto backup: unauthorized folder',
         copyNeedBox: 'Please select a box first.', copyNeedCell: 'Please select cell(s) first.', pasteNeedCell: 'Please select target cell(s) first.',
         saveNeedCell: 'Please select cell(s) first.', clearNeedCell: 'Please select cells to clear first.'
       }
@@ -1577,11 +1577,11 @@
       const el = document.getElementById('backup-status');
       if (!el) return;
       if (!('showDirectoryPicker' in window)) {
-        setBackupStatus('自动备份：浏览器不支持目录授权', 'local');
+        setBackupStatus(t('backupUnsupported'), 'local');
         return;
       }
       if (!autoBackupEnabled) {
-        setBackupStatus('自动备份：已关闭', 'off');
+        setBackupStatus(t('backupDisabled'), 'off');
         return;
       }
       const writable = await ensureWritableBackupDir(false);
@@ -1590,10 +1590,10 @@
       localStorage.setItem(AUTO_BACKUP_MODE_KEY, mode);
       setBackupStatus(
         writable
-          ? `自动备份：已授权`
+          ? t('backupReady')
           : (everAuthorized
-            ? '自动备份：授权待恢复'
-            : '自动备份：未授权目录'),
+            ? t('backupPending')
+            : t('backupUnauthorized')),
         mode
       );
     }
@@ -2055,9 +2055,14 @@
         'backup-folder-btn': ['text', t('backupAuth')],
         'backup-toggle-btn': ['text', t('backupOff')],
         'label-advanced-log': ['text', t('advLog')],
+        'label-quick-actions': ['text', t('quickActions')],
+        'folder-sort-tip': ['text', t('folderSortTip')],
         'label-cell-name': ['text', t('cellName')],
         'label-cell-p': ['text', t('cellP')],
         'label-cell-date': ['text', t('cellDate')],
+        'total-inv-label': ['text', t('totalInventory')],
+        'total-inv-unit': ['text', t('tubeUnit')],
+        'multi-select-label': ['text', t('multiSelect')],
         'label-edit': ['text', t('edit')],
         'label-submit': ['text', t('submit')],
         'warn-title': ['text', t('warnTitle')],
@@ -2072,6 +2077,16 @@
         if (kind === 'placeholder') el.placeholder = val;
         else el.textContent = val;
       });
+      const copyStrong = document.querySelector('#btn-copy strong');
+      const pasteStrong = document.querySelector('#btn-paste strong');
+      const saveStrong = document.querySelector('#btn-save strong');
+      const clearStrong = document.querySelector('#btn-clear strong');
+      if (copyStrong) copyStrong.textContent = t('copy');
+      if (pasteStrong) pasteStrong.textContent = t('paste');
+      if (saveStrong) saveStrong.textContent = t('save');
+      if (clearStrong) clearStrong.textContent = t('clear');
+      const msIndicator = document.getElementById('multi-select-indicator');
+      if (msIndicator) msIndicator.textContent = multiSelectMode ? t('on') : t('off');
       const backupStatus = document.getElementById('backup-status');
       if (backupStatus) backupStatus.title = t('statusTitle');
       const okBtn = document.querySelector('#action-message-modal-mask .btn.primary');
@@ -3148,7 +3163,7 @@
       btn.classList.toggle('on', multiSelectMode);
       btn.classList.toggle('off', !multiSelectMode);
       const indicator = btn.querySelector('.switch-indicator');
-      if (indicator) indicator.textContent = multiSelectMode ? '开' : '关';
+      if (indicator) indicator.textContent = multiSelectMode ? t('on') : t('off');
     }
 
     function toggleMultiSelectMode() {
