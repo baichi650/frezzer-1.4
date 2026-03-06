@@ -3091,6 +3091,10 @@
       renderBoxFolderStrip();
       searchHighlightPos = pos;
       switchBox(boxId);
+      selectedPositions.clear();
+      selectedPositions.add(pos);
+      renderGrid();
+      updatePanel();
       setTimeout(() => {
         const el = document.getElementById(`cell-${pos}`);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -3116,6 +3120,8 @@
             pos,
             folderPath,
             boxName: box.name || '-',
+            rows: box.rows || 0,
+            cols: box.cols || 0,
             p: vial?.p || '-',
             date: vial?.date || '-'
           });
@@ -3132,7 +3138,7 @@
           ? rows.map((r, idx) => `
             <div class="inventory-location-item" data-box-id="${r.boxId}" data-pos="${r.pos}" title="点击快速跳转">
               <div class="inventory-location-main">${idx + 1}. ${r.folderPath} / ${r.boxName} [${r.pos}]</div>
-              <div class="inventory-location-sub">P: ${r.p} · 日期: ${r.date}</div>
+              <div class="inventory-location-sub">${r.rows}行${r.cols}列 · P: ${r.p} · 日期: ${r.date}</div>
             </div>
           `).join('')
           : '<div style="color:#999;text-align:center;padding:8px 0;">未找到库存位置。</div>';
