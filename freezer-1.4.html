@@ -933,6 +933,33 @@
     .card { padding: 16px; }
     .card h3 { margin: 0 0 10px; }
     .input { width: 100%; padding: 9px; margin: 4px 0 12px; border: 1px solid #d9d9d9; border-radius: 6px; }
+    .date-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 4px 0 12px;
+    }
+    .date-input-wrap .input { margin: 0; }
+    .date-assist-native {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .date-assist-picker {
+      border: 1px solid #d8dde6;
+      background: #fff;
+      border-radius: 8px;
+      height: 36px;
+      min-width: 36px;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
     .stats { border: 1px solid #91d5ff; background: #e6f7ff; border-radius: 8px; padding: 10px; margin-bottom: 12px; }
     .stats.low { border-color: #ffa39e; background: #fff1f0; color: var(--danger); }
     .muted { color: var(--muted); font-size: 12px; }
@@ -1156,7 +1183,11 @@
           <label id="label-cell-p">代数 (P)</label>
           <input id="cell-p" class="input" type="text" />
           <label id="label-cell-date">冻存日期</label>
-          <input id="cell-date" class="input" type="date" placeholder="yyyy/mm/dd" />
+          <div class="date-input-wrap">
+            <input id="cell-date" class="input" type="text" inputmode="numeric" placeholder="yyyy/mm/dd" />
+            <input id="cell-date-picker" class="date-assist-native" type="date" onchange="onDateAssistPicked(this.value)" />
+            <button type="button" class="date-assist-picker" onclick="openDateAssistPicker()" title="选择日期">📅</button>
+          </div>
           <div class="plain-action-wrap">
             <div class="plain-action-row single">
               <button class="plain-btn switch-btn off" onclick="toggleMultiSelectMode()" id="multi-select-btn">
@@ -2152,11 +2183,12 @@
       closeBtns.forEach(el => el.textContent = t('close'));
       document.documentElement.lang = currentLang === 'en' ? 'en' : 'zh-CN';
       const dateInput = document.getElementById('cell-date');
+      const datePicker = document.getElementById('cell-date-picker');
       if (dateInput) {
-        dateInput.lang = 'en-GB';
         dateInput.placeholder = t('dateFmt');
         dateInput.title = t('dateFmt');
       }
+      if (datePicker) datePicker.lang = 'en-GB';
       updateLangToggle();
       applyTopToolbarCollapsedState();
       renderFolderList();
@@ -3446,6 +3478,38 @@
       renderGrid();
       updatePanel();
     }
+
+    function normalizeDateText(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      const m = raw.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);
+      if (!m) return raw;
+      const y = m[1];
+      const mm = String(Number(m[2])).padStart(2, '0');
+      const dd = String(Number(m[3])).padStart(2, '0');
+      return `${y}-${mm}-${dd}`;
+    }
+
+    function formatDateDisplay(value) {
+      if (!value) return '';
+      return String(value).replace(/-/g, '/');
+    }
+
+    function openDateAssistPicker() {
+      const textInput = document.getElementById('cell-date');
+      const picker = document.getElementById('cell-date-picker');
+      if (!picker) return;
+      picker.value = normalizeDateText(textInput?.value || '');
+      if (picker.showPicker) picker.showPicker();
+      else picker.click();
+    }
+
+    function onDateAssistPicked(value) {
+      const textInput = document.getElementById('cell-date');
+      if (!textInput) return;
+      textInput.value = formatDateDisplay(value || '');
+    }
+
     function updatePanel() {
       document.getElementById('sel-count').textContent = selectedPositions.size;
       if (selectedPositions.size === 1 && currentBoxId) {
@@ -3453,7 +3517,7 @@
         const data = db.boxes[currentBoxId].vials[pos] || {};
         document.getElementById('cell-name').value = data.name || '';
         document.getElementById('cell-p').value = data.p || '';
-        document.getElementById('cell-date').value = data.date || '';
+        document.getElementById('cell-date').value = formatDateDisplay(data.date || '');
       }
       updateLiveStats();
     }
@@ -3479,7 +3543,7 @@
       const payload = {
         name,
         p: document.getElementById('cell-p').value.trim(),
-        date: document.getElementById('cell-date').value
+        date: normalizeDateText(document.getElementById('cell-date').value)
       };
       selectedPositions.forEach(pos => { db.boxes[currentBoxId].vials[pos] = { ...payload }; });
       selectedPositions.clear();
