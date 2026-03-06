@@ -1156,7 +1156,7 @@
           <label id="label-cell-p">代数 (P)</label>
           <input id="cell-p" class="input" type="text" />
           <label id="label-cell-date">冻存日期</label>
-          <input id="cell-date" class="input" type="date" placeholder="yyyy/mm/dd" />
+          <input id="cell-date" class="input" type="text" inputmode="numeric" placeholder="yyyy/mm/dd" />
           <div class="plain-action-wrap">
             <div class="plain-action-row single">
               <button class="plain-btn switch-btn off" onclick="toggleMultiSelectMode()" id="multi-select-btn">
@@ -2152,7 +2152,6 @@
       document.documentElement.lang = currentLang === 'en' ? 'en' : 'zh-CN';
       const dateInput = document.getElementById('cell-date');
       if (dateInput) {
-        dateInput.lang = currentLang === 'en' ? 'en-GB' : 'zh-CN';
         dateInput.placeholder = t('dateFmt');
         dateInput.title = t('dateFmt');
       }
@@ -3440,6 +3439,22 @@
       updatePanel();
     }
 
+    function formatDateForInputDisplay(value) {
+      if (!value) return '';
+      return String(value).replace(/-/g, '/');
+    }
+
+    function normalizeDateInput(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      const m = raw.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);
+      if (!m) return raw;
+      const y = m[1];
+      const mm = String(Number(m[2])).padStart(2, '0');
+      const dd = String(Number(m[3])).padStart(2, '0');
+      return `${y}-${mm}-${dd}`;
+    }
+
     function updatePanel() {
       document.getElementById('sel-count').textContent = selectedPositions.size;
       if (selectedPositions.size === 1 && currentBoxId) {
@@ -3447,7 +3462,7 @@
         const data = db.boxes[currentBoxId].vials[pos] || {};
         document.getElementById('cell-name').value = data.name || '';
         document.getElementById('cell-p').value = data.p || '';
-        document.getElementById('cell-date').value = data.date || '';
+        document.getElementById('cell-date').value = formatDateForInputDisplay(data.date || '');
       }
       updateLiveStats();
     }
@@ -3473,7 +3488,7 @@
       const payload = {
         name,
         p: document.getElementById('cell-p').value.trim(),
-        date: document.getElementById('cell-date').value
+        date: normalizeDateInput(document.getElementById('cell-date').value)
       };
       selectedPositions.forEach(pos => { db.boxes[currentBoxId].vials[pos] = { ...payload }; });
       selectedPositions.clear();
