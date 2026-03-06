@@ -1403,7 +1403,7 @@
       zh: {
         sidebarSearch: '🔎 搜索文件夹 / 容器...', globalSearch: '🔎 全局搜索：细胞名/代数/条码',
         create: '+ 新建', viewGrid: '容器页面', viewOverview: '总览页面', toolbarExpand: '展开工具栏', toolbarCollapse: '收起工具栏',
-        dataOps: '数据操作:', import: '导入', exportExcel: '导出Excel', exportJson: '导出备份JSON', autoBackup: '自动备份:', format: '格式:', freq: '频率:',
+        dataOps: '数据操作:', import: '导入', exportExcel: '导出Excel', exportJson: '导出备份JSON', autoBackup: '自动备份:', dir: '目录:', format: '格式:', freq: '频率:',
         backupNow: '立即备份', backupAuth: '授权备份目录', backupOff: '关闭自动备份', advLog: '高级/日志（折叠，默认收起）', quickActions: '快捷操作:', folderSortTip: '长按文件夹项可进入排序模式', changeDir: '更改目录', runBackupNow: '立即备份',
         cellName: '细胞名称 (Name)', cellP: '代数 (P)', cellDate: '冻存日期', dateFmt: 'yyyy/mm/dd', edit: '编辑', submit: '提交', warnTitle: '⚠️ 低库存预警', totalInventory: '全库总余量', tubeUnit: '管', multiSelect: '多选', on: '开', off: '关', copy: '复制', paste: '粘贴', save: '保存', clear: '出库',
         overviewTitle: '📊 文件夹/容器总览', createTitle: '新建', createFolder: '新建文件夹', createBox: '新建容器',
@@ -1417,7 +1417,7 @@
       en: {
         sidebarSearch: '🔎 Search folders / boxes...', globalSearch: '🔎 Global search: name / passage / barcode',
         create: '+ New', viewGrid: 'Box View', viewOverview: 'Overview', toolbarExpand: 'Expand Toolbar', toolbarCollapse: 'Collapse Toolbar',
-        dataOps: 'Data:', import: 'Import', exportExcel: 'Export Excel', exportJson: 'Export Backup JSON', autoBackup: 'Auto Backup:', format: 'Format:', freq: 'Frequency:',
+        dataOps: 'Data:', import: 'Import', exportExcel: 'Export Excel', exportJson: 'Export Backup JSON', autoBackup: 'Auto Backup:', dir: 'Dir:', format: 'Format:', freq: 'Frequency:',
         backupNow: 'Backup Now', backupAuth: 'Authorize Backup Folder', backupOff: 'Disable Auto Backup', advLog: 'Advanced / Logs (collapsed by default)', quickActions: 'Quick Actions:', folderSortTip: 'Long press a folder item to enter sort mode', changeDir: 'Change Folder', runBackupNow: 'Run Backup Now',
         cellName: 'Cell Name', cellP: 'Passage (P)', cellDate: 'Freeze Date', dateFmt: 'yyyy/mm/dd', edit: 'Edit', submit: 'Apply', warnTitle: '⚠️ Low Stock Alert', totalInventory: 'Total Inventory', tubeUnit: 'tubes', multiSelect: 'Multi-select', on: 'ON', off: 'OFF', copy: 'Copy', paste: 'Paste', save: 'Save', clear: 'Clear',
         overviewTitle: '📊 Folder / Box Overview', createTitle: 'Create', createFolder: 'New Folder', createBox: 'New Box',
@@ -1603,7 +1603,7 @@
       localStorage.setItem(AUTO_BACKUP_ENABLED_KEY, '1');
       if (!('showDirectoryPicker' in window)) {
         await refreshBackupStatus();
-        return alert(t('backupApiUnsupported'));
+        return openActionMessageModal(t('backupApiUnsupported'));
       }
       try {
         await ensureWritableBackupDir(true);
@@ -1611,16 +1611,16 @@
         localStorage.setItem(AUTO_BACKUP_MODE_KEY, 'folder');
         await refreshBackupStatus();
         saveAutoBackup('grant-folder-backup');
-        alert(t('backupEnabledMsg'));
+        openActionMessageModal(t('backupEnabledMsg'));
       } catch (err) {
         console.warn(err);
         await refreshBackupStatus();
-        alert(t('backupAuthNotDone'));
+        openActionMessageModal(t('backupAuthNotDone'));
       }
     }
 
     async function changeBackupFolder() {
-      if (!('showDirectoryPicker' in window)) return alert(t('backupApiUnsupportedShort'));
+      if (!('showDirectoryPicker' in window)) return openActionMessageModal(t('backupApiUnsupportedShort'));
       try {
         autoBackupEnabled = true;
         localStorage.setItem(AUTO_BACKUP_ENABLED_KEY, '1');
@@ -1629,10 +1629,10 @@
         localStorage.setItem(AUTO_BACKUP_MODE_KEY, 'folder');
         await refreshBackupStatus();
         saveAutoBackup('change-folder');
-        alert(t('backupFolderUpdated'));
+        openActionMessageModal(t('backupFolderUpdated'));
       } catch (err) {
         console.warn(err);
-        alert(t('backupFolderNotUpdated'));
+        openActionMessageModal(t('backupFolderNotUpdated'));
       }
     }
 
@@ -1643,7 +1643,7 @@
       localStorage.removeItem(AUTO_BACKUP_AUTHORIZED_KEY);
       await clearDirectoryHandle();
       await refreshBackupStatus();
-      alert(t('backupDisabledMsg'));
+      openActionMessageModal(t('backupDisabledMsg'));
     }
 
 
@@ -2013,7 +2013,7 @@
       saveAutoBackup('manual-toolbar');
       const log = document.getElementById('last-backup-log');
       if (log) log.textContent = new Date().toLocaleTimeString('zh-CN', { hour12: false });
-      alert(t('backupTriggered'));
+      openActionMessageModal(t('backupTriggered'));
     }
 
 
@@ -2049,6 +2049,7 @@
         'btn-export-excel': ['text', t('exportExcel')],
         'btn-export-json': ['text', t('exportJson')],
         'label-auto-backup': ['text', t('autoBackup')],
+        'backup-dir-label': ['text', t('dir')],
         'label-format': ['text', t('format')],
         'label-frequency': ['text', t('freq')],
         'backup-now-btn': ['text', t('backupNow')],
