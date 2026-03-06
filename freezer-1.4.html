@@ -420,6 +420,17 @@
       padding-left: 18px;
       font-weight: 600;
     }
+    .nav-folder-stats {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff7cc;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .nav-stat-item { min-width: 52px; text-align: right; }
+    .nav-folder-submeta .usage { color: #ffe58f; margin-left: 8px; }
     .nav-more-btn {
       margin-left: auto;
       border: 1px solid rgba(184,223,255,.45);
@@ -2339,11 +2350,14 @@
               <span class="tree-arrow tree-arrow-btn" ${arrowClick}>${arrow}</span>
               <span>📁</span>
               <span class="nav-folder-name">${folder.name}</span>
-              <span class="nav-folder-pill">${boxCount}盒子</span>
               ${sortOps}
+              <span class="nav-folder-stats">
+                <span class="nav-stat-item">${childIds.length}子夹</span>
+                <span class="nav-stat-item">${boxCount}盒子</span>
+              </span>
               <button class="nav-more-btn" title="文件夹操作" onclick="openNavActionModal('folder','${fid}',event)">⋯</button>
             </div>
-            <div class="nav-folder-submeta">总容量 ${folderCapacity} · 已存 ${folderStored}</div>
+            <div class="nav-folder-submeta">总容量 ${folderCapacity} · 已存 ${folderStored}<span class="usage">使用率 ${folderCapacity ? Math.round((folderStored / folderCapacity) * 100) : 0}%</span></div>
           </div>
         `;
         div.onpointerdown = () => startFolderLongPress(fid);
