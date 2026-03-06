@@ -1265,6 +1265,25 @@
       </div>
     </div>
 
+    <div id="action-message-modal-mask" class="modal-mask hidden" onclick="closeActionMessageModal(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div id="action-message-title" class="modal-head">提示</div>
+        <div class="modal-body"><div id="action-message-content" class="modal-field"></div></div>
+        <div class="modal-foot"><button class="btn primary" onclick="closeActionMessageModal()">知道了</button></div>
+      </div>
+    </div>
+
+    <div id="clear-confirm-modal-mask" class="modal-mask hidden" onclick="closeClearConfirmModal(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-head">确认出库</div>
+        <div class="modal-body"><div class="modal-field">确定清空所选位置吗？</div></div>
+        <div class="modal-foot">
+          <button class="btn" onclick="closeClearConfirmModal()">取消</button>
+          <button class="btn primary" onclick="submitClearBatchModal()">确定</button>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <script>
@@ -1304,6 +1323,8 @@
     let navActionState = { type: null, id: null };
     let folderRenameId = null;
     let folderDeleteState = { folderId: null, related: 0 };
+    let pendingClearSelection = [];
+    let pendingClearBoxId = null;
     let gridZoom = 1;
     let zoomControlDragging = null;
     const savedEnabledState = localStorage.getItem(AUTO_BACKUP_ENABLED_KEY);
@@ -2970,23 +2991,67 @@
       }
     }
 
+    function openActionMessageModal(message, title = '提示') {
+      const mask = document.getElementById('action-message-modal-mask');
+      const titleEl = document.getElementById('action-message-title');
+      const contentEl = document.getElementById('action-message-content');
+      if (titleEl) titleEl.textContent = title;
+      if (contentEl) contentEl.textContent = message;
+      if (mask) mask.classList.remove('hidden');
+    }
+
+    function closeActionMessageModal(e) {
+      if (e && e.target && e.target.id !== 'action-message-modal-mask') return;
+      const mask = document.getElementById('action-message-modal-mask');
+      if (mask) mask.classList.add('hidden');
+    }
+
+    function openClearConfirmModal() {
+      pendingClearSelection = [...selectedPositions];
+      pendingClearBoxId = currentBoxId;
+      const mask = document.getElementById('clear-confirm-modal-mask');
+      if (mask) mask.classList.remove('hidden');
+    }
+
+    function closeClearConfirmModal(e) {
+      if (e && e.target && e.target.id !== 'clear-confirm-modal-mask') return;
+      const mask = document.getElementById('clear-confirm-modal-mask');
+      if (mask) mask.classList.add('hidden');
+      pendingClearSelection = [];
+      pendingClearBoxId = null;
+    }
+
+    function submitClearBatchModal() {
+      if (!pendingClearBoxId || !db.boxes[pendingClearBoxId]) return closeClearConfirmModal();
+      pendingClearSelection.forEach(pos => delete db.boxes[pendingClearBoxId].vials[pos]);
+      selectedPositions.clear();
+      save();
+      closeClearConfirmModal();
+      renderGrid();
+      updatePanel();
+      updateWarningBoard();
+      renderOverviewFolderStrip();
+      updateOverview();
+      openActionMessageModal('已完成出库。');
+    }
+
     async function copySelectedCells() {
-      if (!currentBoxId || !db.boxes[currentBoxId]) return alert('请先选择容器。');
-      if (!selectedPositions.size) return alert('请先选择单元格。');
+      if (!currentBoxId || !db.boxes[currentBoxId]) return openActionMessageModal('请先选择容器。');
+      if (!selectedPositions.size) return openActionMessageModal('请先选择单元格。');
       const box = db.boxes[currentBoxId];
       const cells = [...selectedPositions].map(pos => ({ pos, ...(box.vials[pos] || {}) }));
       const text = JSON.stringify(cells, null, 2);
       try {
         await navigator.clipboard.writeText(text);
-        alert(`已复制 ${cells.length} 个单元格信息。`);
+        openActionMessageModal(`已复制 ${cells.length} 个单元格信息。`);
       } catch {
-        alert('复制失败，请检查浏览器剪贴板权限。');
+        openActionMessageModal('复制失败，请检查浏览器剪贴板权限。');
       }
     }
 
     async function pasteToSelectedCells() {
-      if (!currentBoxId || !db.boxes[currentBoxId]) return alert('请先选择容器。');
-      if (!selectedPositions.size) return alert('请先选择粘贴目标单元格。');
+      if (!currentBoxId || !db.boxes[currentBoxId]) return openActionMessageModal('请先选择容器。');
+      if (!selectedPositions.size) return openActionMessageModal('请先选择粘贴目标单元格。');
       let payload = [];
       try {
         const text = await navigator.clipboard.readText();
@@ -2998,7 +3063,7 @@
           date: item?.date || ''
         }));
       } catch {
-        return alert('粘贴失败：剪贴板内容不是可用的复制数据。');
+        return openActionMessageModal('粘贴失败：剪贴板内容不是可用的复制数据。');
       }
 
       const targets = [...selectedPositions];
@@ -3015,7 +3080,7 @@
           else delete box.vials[pos];
         });
       } else {
-        return alert('粘贴失败：多条复制数据时，目标单元格数量需与复制数量一致，或仅复制1条用于批量覆盖。');
+        return openActionMessageModal('粘贴失败：多条复制数据时，目标单元格数量需与复制数量一致，或仅复制1条用于批量覆盖。');
       }
 
       save();
@@ -3023,7 +3088,7 @@
       updatePanel();
       updateWarningBoard();
       updateOverview();
-      alert(`已粘贴到 ${targets.length} 个单元格。`);
+      openActionMessageModal(`已粘贴到 ${targets.length} 个单元格。`);
     }
 
     function toggleSelect(pos) {
@@ -3064,9 +3129,9 @@
     }
 
     function saveBatch() {
-      if (!currentBoxId || !selectedPositions.size) return alert('请先选择格子。');
+      if (!currentBoxId || !selectedPositions.size) return openActionMessageModal('请先选择格子。');
       const name = document.getElementById('cell-name').value.trim();
-      if (!name) return alert('细胞名称必填。');
+      if (!name) return openActionMessageModal('细胞名称必填。');
 
       const payload = {
         name,
@@ -3084,16 +3149,8 @@
     }
 
     function clearBatch() {
-      if (!selectedPositions.size) return;
-      if (!confirm('确定清空所选位置吗？')) return;
-      selectedPositions.forEach(pos => delete db.boxes[currentBoxId].vials[pos]);
-      selectedPositions.clear();
-      save();
-      renderGrid();
-      updatePanel();
-      updateWarningBoard();
-      renderOverviewFolderStrip();
-      updateOverview();
+      if (!selectedPositions.size) return openActionMessageModal('请先选择需要出库的单元格。');
+      openClearConfirmModal();
     }
 
     function handleGlobalSearch() {
