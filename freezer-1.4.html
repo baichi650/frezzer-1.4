@@ -379,7 +379,26 @@
       min-width: 0;
       font-weight: 700;
     }
-    .nav-folder-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nav-folder-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; position: relative; }
+    .nav-folder-card .item-info { overflow: visible; }
+    .nav-folder-line { position: relative; }
+    .nav-folder-line[data-sub-tip]:hover::after {
+      content: attr(data-sub-tip);
+      position: absolute;
+      left: 18px;
+      top: calc(100% + 6px);
+      z-index: 40;
+      white-space: nowrap;
+      background: rgba(10,22,38,.96);
+      border: 1px solid rgba(155,216,255,.65);
+      color: #e9f6ff;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,.28);
+      pointer-events: none;
+    }
     .nav-folder-pill {
       margin-left: auto;
       color: #fff7cc;
@@ -1443,7 +1462,7 @@
         msgSelectOne: '请先选中一个单元格后再查看全库位置。', msgNoName: '当前单元格没有细胞名称，无法查询库存位置。',
         msgNoStock: '✅ 库存充足', msgRemain: '余{count}', inventoryTitle: '{name} · 库存位置（{count}）', inventoryEmpty: '未找到库存位置。', backupUnsupported: '自动备份：浏览器不支持目录授权', backupDisabled: '自动备份：已关闭', backupReady: '自动备份：已授权', backupPending: '自动备份：授权待恢复', backupUnauthorized: '自动备份：未授权目录',
         copyNeedBox: '请先选择容器。', copyNeedCell: '请先选择单元格。', pasteNeedCell: '请先选择粘贴目标单元格。',
-        saveNeedCell: '请先选择格子。', clearNeedCell: '请先选择需要出库的单元格。', addFolderTitle: '新增文件夹', folderName: '文件夹名称', parentFolder: '上级文件夹', cancel: '取消', createBtn: '创建', renameFolderTitle: '重命名文件夹', saveBtn: '保存', deleteFolderTitle: '删除文件夹', moveToFolder: '容器迁移到', deleteBtn: '删除', addBoxTitle: '新建容器', boxName: '容器名称', boxFolder: '位置文件夹', boxSpec: '容器规格', actionTitle: '操作', folderActions: '文件夹操作', boxActions: '容器操作', renameAction: '重命名', moveAction: '移动', boxActionTitle: '容器操作', targetFolder: '目标文件夹', boxDeleteConfirm: '确定删除该容器及其内所有样本吗？', clearConfirmTitle: '确认出库', clearConfirmTip: '确定清空所选位置吗？', confirm: '确定', deleteFolderConfirm: '确定删除文件夹【{name}】吗？', deleteFolderWithRelated: '该文件夹下有 {count} 个容器，删除前请先选择迁移目标。', doneClear: '已完成出库。', copiedMsg: '已复制 {count} 个单元格信息。', copyFail: '复制失败，请检查浏览器剪贴板权限。', pasteFailFormat: '粘贴失败：剪贴板内容不是可用的复制数据。', pasteFailCount: '粘贴失败：多条复制数据时，目标单元格数量需与复制数量一致，或仅复制1条用于批量覆盖。', pastedMsg: '已粘贴到 {count} 个单元格。', cellNameRequired: '细胞名称必填。', backupApiUnsupported: '当前浏览器不支持目录写入 API，将仅使用本地自动备份。', backupEnabledMsg: '已启用自动备份。后续将自动写入 auto-backups 目录。', backupAuthNotDone: '未完成授权，当前将仅使用本地自动备份。', backupApiUnsupportedShort: '当前浏览器不支持目录写入 API。', backupFolderUpdated: '备份文件夹已更新。', backupFolderNotUpdated: '未完成文件夹更换。', backupDisabledMsg: '自动备份已关闭。', backupTriggered: '已触发立即备份。', renameBoxTitle: '重命名容器', moveBoxTitle: '移动容器', deleteBoxTitle: '删除容器', addFolderNamePlaceholder: '例如：液氮 / -80 / 默认位置', renameFolderNamePlaceholder: '请输入新的文件夹名称', addBoxNamePlaceholder: '例如：96孔板-1', addBoxSpec96: '96孔板 (8x12)', addBoxSpec81: '9x9 (81格)', addBoxSpec100: '10x10 (100格)', addBoxSpec72: '12x6 (72格)', addBoxSpecCustom: '自定义行列', customRows: '自定义行数（n行）', customCols: '自定义列数（n列）', emptyTip: '请在左侧选择或新增一个容器', miniTreeTitle: '位置树', empty: '空', allFolders: '全部文件夹', subfoldersUnit: '子夹', subfoldersHover: '子夹：{count}', boxesUnit: '盒子', totalCapacity: '总容量', stored: '已存', emptySlots: '空置', unclassified: '未分类', folderNoBoxes: '该文件夹暂无容器', boxNoSamples: '容器内暂无样本', ovContainer: '容器', ovSample: '样本', authorized: '已授权'
+        saveNeedCell: '请先选择格子。', clearNeedCell: '请先选择需要出库的单元格。', addFolderTitle: '新增文件夹', folderName: '文件夹名称', parentFolder: '上级文件夹', cancel: '取消', createBtn: '创建', renameFolderTitle: '重命名文件夹', saveBtn: '保存', deleteFolderTitle: '删除文件夹', moveToFolder: '容器迁移到', deleteBtn: '删除', addBoxTitle: '新建容器', boxName: '容器名称', boxFolder: '位置文件夹', boxSpec: '容器规格', actionTitle: '操作', folderActions: '文件夹操作', boxActions: '容器操作', renameAction: '重命名', moveAction: '移动', boxActionTitle: '容器操作', targetFolder: '目标文件夹', boxDeleteConfirm: '确定删除该容器及其内所有样本吗？', clearConfirmTitle: '确认出库', clearConfirmTip: '确定清空所选位置吗？', confirm: '确定', deleteFolderConfirm: '确定删除文件夹【{name}】吗？', deleteFolderWithRelated: '该文件夹下有 {count} 个容器，删除前请先选择迁移目标。', doneClear: '已完成出库。', copiedMsg: '已复制 {count} 个单元格信息。', copyFail: '复制失败，请检查浏览器剪贴板权限。', pasteFailFormat: '粘贴失败：剪贴板内容不是可用的复制数据。', pasteFailCount: '粘贴失败：多条复制数据时，目标单元格数量需与复制数量一致，或仅复制1条用于批量覆盖。', pastedMsg: '已粘贴到 {count} 个单元格。', cellNameRequired: '细胞名称必填。', backupApiUnsupported: '当前浏览器不支持目录写入 API，将仅使用本地自动备份。', backupEnabledMsg: '已启用自动备份。后续将自动写入 auto-backups 目录。', backupAuthNotDone: '未完成授权，当前将仅使用本地自动备份。', backupApiUnsupportedShort: '当前浏览器不支持目录写入 API。', backupFolderUpdated: '备份文件夹已更新。', backupFolderNotUpdated: '未完成文件夹更换。', backupDisabledMsg: '自动备份已关闭。', backupTriggered: '已触发立即备份。', renameBoxTitle: '重命名容器', moveBoxTitle: '移动容器', deleteBoxTitle: '删除容器', addFolderNamePlaceholder: '例如：液氮 / -80 / 默认位置', renameFolderNamePlaceholder: '请输入新的文件夹名称', addBoxNamePlaceholder: '例如：96孔板-1', addBoxSpec96: '96孔板 (8x12)', addBoxSpec81: '9x9 (81格)', addBoxSpec100: '10x10 (100格)', addBoxSpec72: '12x6 (72格)', addBoxSpecCustom: '自定义行列', customRows: '自定义行数（n行）', customCols: '自定义列数（n列）', emptyTip: '请在左侧选择或新增一个容器', miniTreeTitle: '位置树', empty: '空', allFolders: '全部文件夹', subfoldersUnit: '子夹', subfoldersHover: '子夹：{count}', hoverJump: '点击快速跳转', inventorySpec: '{rows}行{cols}列 · P: {p} · 日期: {date}', cellHover: '位置: {pos}\n名称: {name}\n代数: {p}\n日期: {date}', boxesUnit: '盒子', totalCapacity: '总容量', stored: '已存', emptySlots: '空置', unclassified: '未分类', folderNoBoxes: '该文件夹暂无容器', boxNoSamples: '容器内暂无样本', ovContainer: '容器', ovSample: '样本', authorized: '已授权'
       },
       en: {
         sidebarSearch: '🔎 Search folders / boxes...', globalSearch: '🔎 Global search: name / passage / barcode',
@@ -1457,7 +1476,7 @@
         msgSelectOne: 'Select exactly one cell before checking global locations.', msgNoName: 'Selected cell has no name, unable to query inventory locations.',
         msgNoStock: '✅ Stock is sufficient', msgRemain: '{count} left', inventoryTitle: '{name} · Inventory Locations ({count})', inventoryEmpty: 'No inventory locations found.', backupUnsupported: 'Auto backup: browser directory permission is unsupported', backupDisabled: 'Auto backup: disabled', backupReady: 'Auto backup: authorized', backupPending: 'Auto backup: authorization pending restore', backupUnauthorized: 'Auto backup: unauthorized folder',
         copyNeedBox: 'Please select a box first.', copyNeedCell: 'Please select cell(s) first.', pasteNeedCell: 'Please select target cell(s) first.',
-        saveNeedCell: 'Please select cell(s) first.', clearNeedCell: 'Please select cells to clear first.', addFolderTitle: 'Add Folder', folderName: 'Folder Name', parentFolder: 'Parent Folder', cancel: 'Cancel', createBtn: 'Create', renameFolderTitle: 'Rename Folder', saveBtn: 'Save', deleteFolderTitle: 'Delete Folder', moveToFolder: 'Move boxes to', deleteBtn: 'Delete', addBoxTitle: 'Add Box', boxName: 'Box Name', boxFolder: 'Folder', boxSpec: 'Box Spec', actionTitle: 'Actions', folderActions: 'Folder Actions', boxActions: 'Box Actions', renameAction: 'Rename', moveAction: 'Move', boxActionTitle: 'Box Actions', targetFolder: 'Target Folder', boxDeleteConfirm: 'Delete this box and all samples inside?', clearConfirmTitle: 'Confirm Clear', clearConfirmTip: 'Clear selected positions?', confirm: 'Confirm', deleteFolderConfirm: 'Delete folder [{name}]?', deleteFolderWithRelated: 'This folder has {count} box(es). Please select a migration target before deleting.', doneClear: 'Cleared successfully.', copiedMsg: 'Copied {count} cell record(s).', copyFail: 'Copy failed. Please check clipboard permission.', pasteFailFormat: 'Paste failed: clipboard data format is invalid.', pasteFailCount: 'Paste failed: when copying multiple records, target count must match copy count, or copy only one record for batch overwrite.', pastedMsg: 'Pasted into {count} cell(s).', cellNameRequired: 'Cell name is required.', backupApiUnsupported: 'Your browser does not support directory write API. Local auto-backup will be used only.', backupEnabledMsg: 'Auto backup enabled. Future backups will be written to auto-backups.', backupAuthNotDone: 'Authorization not completed. Local auto-backup will be used only.', backupApiUnsupportedShort: 'Your browser does not support directory write API.', backupFolderUpdated: 'Backup folder updated.', backupFolderNotUpdated: 'Backup folder change was not completed.', backupDisabledMsg: 'Auto backup has been disabled.', backupTriggered: 'Manual backup triggered.', renameBoxTitle: 'Rename Box', moveBoxTitle: 'Move Box', deleteBoxTitle: 'Delete Box', addFolderNamePlaceholder: 'e.g. LN2 / -80 / Default', renameFolderNamePlaceholder: 'Enter new folder name', addBoxNamePlaceholder: 'e.g. Plate-1', addBoxSpec96: '96-well (8x12)', addBoxSpec81: '9x9 (81 cells)', addBoxSpec100: '10x10 (100 cells)', addBoxSpec72: '12x6 (72 cells)', addBoxSpecCustom: 'Custom rows/cols', customRows: 'Custom rows (n)', customCols: 'Custom cols (n)', emptyTip: 'Please select or create a box on the left', miniTreeTitle: 'Location Tree', empty: 'Empty', allFolders: 'All Folders', subfoldersUnit: 'subfolders', subfoldersHover: 'Subfolders: {count}', boxesUnit: 'boxes', totalCapacity: 'Capacity', stored: 'Stored', emptySlots: 'Empty', unclassified: 'Uncategorized', folderNoBoxes: 'No boxes in this folder', boxNoSamples: 'No samples in this box', ovContainer: 'Boxes', ovSample: 'Samples', authorized: 'Authorized'
+        saveNeedCell: 'Please select cell(s) first.', clearNeedCell: 'Please select cells to clear first.', addFolderTitle: 'Add Folder', folderName: 'Folder Name', parentFolder: 'Parent Folder', cancel: 'Cancel', createBtn: 'Create', renameFolderTitle: 'Rename Folder', saveBtn: 'Save', deleteFolderTitle: 'Delete Folder', moveToFolder: 'Move boxes to', deleteBtn: 'Delete', addBoxTitle: 'Add Box', boxName: 'Box Name', boxFolder: 'Folder', boxSpec: 'Box Spec', actionTitle: 'Actions', folderActions: 'Folder Actions', boxActions: 'Box Actions', renameAction: 'Rename', moveAction: 'Move', boxActionTitle: 'Box Actions', targetFolder: 'Target Folder', boxDeleteConfirm: 'Delete this box and all samples inside?', clearConfirmTitle: 'Confirm Clear', clearConfirmTip: 'Clear selected positions?', confirm: 'Confirm', deleteFolderConfirm: 'Delete folder [{name}]?', deleteFolderWithRelated: 'This folder has {count} box(es). Please select a migration target before deleting.', doneClear: 'Cleared successfully.', copiedMsg: 'Copied {count} cell record(s).', copyFail: 'Copy failed. Please check clipboard permission.', pasteFailFormat: 'Paste failed: clipboard data format is invalid.', pasteFailCount: 'Paste failed: when copying multiple records, target count must match copy count, or copy only one record for batch overwrite.', pastedMsg: 'Pasted into {count} cell(s).', cellNameRequired: 'Cell name is required.', backupApiUnsupported: 'Your browser does not support directory write API. Local auto-backup will be used only.', backupEnabledMsg: 'Auto backup enabled. Future backups will be written to auto-backups.', backupAuthNotDone: 'Authorization not completed. Local auto-backup will be used only.', backupApiUnsupportedShort: 'Your browser does not support directory write API.', backupFolderUpdated: 'Backup folder updated.', backupFolderNotUpdated: 'Backup folder change was not completed.', backupDisabledMsg: 'Auto backup has been disabled.', backupTriggered: 'Manual backup triggered.', renameBoxTitle: 'Rename Box', moveBoxTitle: 'Move Box', deleteBoxTitle: 'Delete Box', addFolderNamePlaceholder: 'e.g. LN2 / -80 / Default', renameFolderNamePlaceholder: 'Enter new folder name', addBoxNamePlaceholder: 'e.g. Plate-1', addBoxSpec96: '96-well (8x12)', addBoxSpec81: '9x9 (81 cells)', addBoxSpec100: '10x10 (100 cells)', addBoxSpec72: '12x6 (72 cells)', addBoxSpecCustom: 'Custom rows/cols', customRows: 'Custom rows (n)', customCols: 'Custom cols (n)', emptyTip: 'Please select or create a box on the left', miniTreeTitle: 'Location Tree', empty: 'Empty', allFolders: 'All Folders', subfoldersUnit: 'subfolders', subfoldersHover: 'Subfolders: {count}', hoverJump: 'Click to jump quickly', inventorySpec: '{rows}x{cols} · P: {p} · Date: {date}', cellHover: 'Pos: {pos}\nName: {name}\nP: {p}\nDate: {date}', boxesUnit: 'boxes', totalCapacity: 'Capacity', stored: 'Stored', emptySlots: 'Empty', unclassified: 'Uncategorized', folderNoBoxes: 'No boxes in this folder', boxNoSamples: 'No samples in this box', ovContainer: 'Boxes', ovSample: 'Samples', authorized: 'Authorized'
       }
     };
     let gridZoom = 1;
@@ -2755,7 +2774,7 @@
         const folderStored = directBoxes.reduce((sum, b) => sum + Object.values(b.vials || {}).filter(v => v?.name).length, 0);
         div.innerHTML = `
           <div class="item-info" style="padding-left:${depth * 12}px">
-            <div class="nav-folder-line">
+            <div class="nav-folder-line" data-sub-tip="${subfolderTip}">
               <span class="tree-arrow tree-arrow-btn" ${arrowClick}>${arrow}</span>
               <span>📁</span>
               <span class="nav-folder-name" title="${subfolderTip}">${folder.name}</span>
@@ -3210,7 +3229,7 @@
           if (vial && vial.name) {
             el.classList.add('occupied');
             el.style.backgroundColor = stringToHslColor(vial.name);
-            el.title = `位置: ${pos}\n名称: ${vial.name}\n代数: ${vial.p || '-'}\n日期: ${vial.date || '-'}`;
+            el.title = t('cellHover', { pos, name: vial.name, p: vial.p || '-', date: vial.date || '-' });
             el.innerHTML = `<div class="cell-label">${vial.name}</div>`;
             el.setAttribute('draggable', 'true');
             el.addEventListener('dragstart', (e) => handleDragStart(e, pos));
@@ -3398,9 +3417,9 @@
       if (list) {
         list.innerHTML = rows.length
           ? rows.map((r, idx) => `
-            <div class="inventory-location-item" data-box-id="${r.boxId}" data-pos="${r.pos}" title="点击快速跳转">
+            <div class="inventory-location-item" data-box-id="${r.boxId}" data-pos="${r.pos}" title="${t('hoverJump')}">
               <div class="inventory-location-main">${idx + 1}. ${r.folderPath} / ${r.boxName} / ${formatInventoryPos(r.pos)}</div>
-              <div class="inventory-location-sub">${r.rows}行${r.cols}列 · P: ${r.p} · 日期: ${r.date}</div>
+              <div class="inventory-location-sub">${t('inventorySpec', { rows: r.rows, cols: r.cols, p: r.p, date: r.date })}</div>
             </div>
           `).join('')
           : `<div style="color:#999;text-align:center;padding:8px 0;">${t('inventoryEmpty')}</div>`;
