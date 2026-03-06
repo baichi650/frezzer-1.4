@@ -430,7 +430,11 @@
       white-space: nowrap;
     }
     .nav-stat-item { min-width: 52px; text-align: right; }
-    .nav-folder-submeta .usage { color: #ffe58f; margin-left: 8px; }
+    .nav-folder-submeta .usage { margin-left: 8px; }
+    .nav-folder-submeta .usage.empty { color: #ffffff; }
+    .nav-folder-submeta .usage.low { color: #95f985; }
+    .nav-folder-submeta .usage.mid { color: #ffcc66; }
+    .nav-folder-submeta .usage.full { color: #ff6b6b; }
     .nav-more-btn {
       margin-left: auto;
       border: 1px solid rgba(184,223,255,.45);
@@ -2357,7 +2361,11 @@
               </span>
               <button class="nav-more-btn" title="文件夹操作" onclick="openNavActionModal('folder','${fid}',event)">⋯</button>
             </div>
-            <div class="nav-folder-submeta">总容量 ${folderCapacity} · 已存 ${folderStored}<span class="usage">使用率 ${folderCapacity ? Math.round((folderStored / folderCapacity) * 100) : 0}%</span></div>
+            <div class="nav-folder-submeta">总容量 ${folderCapacity} · 已存 ${folderStored}${(() => {
+              const pct = folderCapacity ? Math.round((folderStored / folderCapacity) * 100) : 0;
+              const cls = pct === 0 ? 'empty' : (pct >= 100 ? 'full' : (pct >= 70 ? 'mid' : 'low'));
+              return `<span class="usage ${cls}">${pct}%</span>`;
+            })()}</div>
           </div>
         `;
         div.onpointerdown = () => startFolderLongPress(fid);
