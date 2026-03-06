@@ -364,12 +364,6 @@
     }
     .tree-arrow { font-size: 11px; color: #9fd1ff; margin-right: 6px; }
     .tree-arrow-btn { cursor: pointer; user-select: none; display: inline-flex; width: 12px; justify-content: center; }
-    .nav-tree-scope {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      color: #f4f7ff;
-      font-size: 12px;
-      padding: 0 2px;
-    }
     .nav-block-title {
       margin: 8px 0 4px;
       color: #d8e9ff;
@@ -920,7 +914,6 @@
     <button id="sidebar-toggle" class="sidebar-toggle" onclick="toggleSidebar()" title="收起/展开导航栏">◀</button>
     <div id="collapsed-nav"></div>
         <section class="sidebar-panel" style="flex:1;">
-      <div class="sidebar-sub">位置 (Location)</div>
       <input id="sidebar-search" class="sidebar-search" type="text" placeholder="🔎 搜索文件夹 / 容器..." oninput="handleUnifiedSidebarSearch()" />
       <div class="folder-sort-tip">长按文件夹项可进入排序模式</div>
       <div id="folder-list" class="list folder-list"></div>
@@ -2265,7 +2258,7 @@
 
     function renderFolderList() {
       const list = document.getElementById('folder-list');
-      list.innerHTML = '<div class="nav-tree-scope">All位置</div>';
+      list.innerHTML = '';
 
       if (folderSortMode) {
         const tip = document.createElement('div');
@@ -2568,7 +2561,7 @@
     function renderBoxList() {
       const list = document.getElementById('box-list');
       if (!list) return;
-      list.innerHTML = '<div class="nav-tree-scope">All位置</div>';
+      list.innerHTML = '';
       renderBoxFilters();
       const lowNames = getLowInventoryNames();
       const ids = Object.keys(db.boxes).filter(id => {
