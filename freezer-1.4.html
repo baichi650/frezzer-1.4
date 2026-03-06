@@ -1156,7 +1156,7 @@
           <label id="label-cell-p">代数 (P)</label>
           <input id="cell-p" class="input" type="text" />
           <label id="label-cell-date">冻存日期</label>
-          <input id="cell-date" class="input" type="date" />
+          <input id="cell-date" class="input" type="date" placeholder="yyyy/mm/dd" />
           <div class="plain-action-wrap">
             <div class="plain-action-row single">
               <button class="plain-btn switch-btn off" onclick="toggleMultiSelectMode()" id="multi-select-btn">
@@ -1405,7 +1405,7 @@
         create: '+ 新建', viewGrid: '容器页面', viewOverview: '总览页面', toolbarExpand: '展开工具栏', toolbarCollapse: '收起工具栏',
         dataOps: '数据操作:', import: '导入', exportExcel: '导出Excel', exportJson: '导出备份JSON', autoBackup: '自动备份:', format: '格式:', freq: '频率:',
         backupNow: '立即备份', backupAuth: '授权备份目录', backupOff: '关闭自动备份', advLog: '高级/日志（折叠，默认收起）', quickActions: '快捷操作:', folderSortTip: '长按文件夹项可进入排序模式', changeDir: '更改目录', runBackupNow: '立即备份',
-        cellName: '细胞名称 (Name)', cellP: '代数 (P)', cellDate: '冻存日期', edit: '编辑', submit: '提交', warnTitle: '⚠️ 低库存预警', totalInventory: '全库总余量', tubeUnit: '管', multiSelect: '多选', on: '开', off: '关', copy: '复制', paste: '粘贴', save: '保存', clear: '出库',
+        cellName: '细胞名称 (Name)', cellP: '代数 (P)', cellDate: '冻存日期', dateFmt: 'yyyy/mm/dd', edit: '编辑', submit: '提交', warnTitle: '⚠️ 低库存预警', totalInventory: '全库总余量', tubeUnit: '管', multiSelect: '多选', on: '开', off: '关', copy: '复制', paste: '粘贴', save: '保存', clear: '出库',
         overviewTitle: '📊 文件夹/容器总览', createTitle: '新建', createFolder: '新建文件夹', createBox: '新建容器',
         statusTitle: '点击进行开启/授权/关闭', tip: '提示', ok: '知道了', close: '关闭',
         locBadge: '位置: {folder} · 容器: {box} ({rows}x{cols})',
@@ -1419,7 +1419,7 @@
         create: '+ New', viewGrid: 'Box View', viewOverview: 'Overview', toolbarExpand: 'Expand Toolbar', toolbarCollapse: 'Collapse Toolbar',
         dataOps: 'Data:', import: 'Import', exportExcel: 'Export Excel', exportJson: 'Export Backup JSON', autoBackup: 'Auto Backup:', format: 'Format:', freq: 'Frequency:',
         backupNow: 'Backup Now', backupAuth: 'Authorize Backup Folder', backupOff: 'Disable Auto Backup', advLog: 'Advanced / Logs (collapsed by default)', quickActions: 'Quick Actions:', folderSortTip: 'Long press a folder item to enter sort mode', changeDir: 'Change Folder', runBackupNow: 'Run Backup Now',
-        cellName: 'Cell Name', cellP: 'Passage (P)', cellDate: 'Freeze Date', edit: 'Edit', submit: 'Apply', warnTitle: '⚠️ Low Stock Alert', totalInventory: 'Total Inventory', tubeUnit: 'tubes', multiSelect: 'Multi-select', on: 'ON', off: 'OFF', copy: 'Copy', paste: 'Paste', save: 'Save', clear: 'Clear',
+        cellName: 'Cell Name', cellP: 'Passage (P)', cellDate: 'Freeze Date', dateFmt: 'yyyy/mm/dd', edit: 'Edit', submit: 'Apply', warnTitle: '⚠️ Low Stock Alert', totalInventory: 'Total Inventory', tubeUnit: 'tubes', multiSelect: 'Multi-select', on: 'ON', off: 'OFF', copy: 'Copy', paste: 'Paste', save: 'Save', clear: 'Clear',
         overviewTitle: '📊 Folder / Box Overview', createTitle: 'Create', createFolder: 'New Folder', createBox: 'New Box',
         statusTitle: 'Click to enable/authorize/disable', tip: 'Notice', ok: 'OK', close: 'Close',
         locBadge: 'Location: {folder} · Box: {box} ({rows}x{cols})',
@@ -2149,6 +2149,13 @@
       if (okBtn) okBtn.textContent = t('ok');
       const closeBtns = document.querySelectorAll('#nav-action-modal-mask .btn, #inventory-locations-modal-mask .btn');
       closeBtns.forEach(el => el.textContent = t('close'));
+      document.documentElement.lang = currentLang === 'en' ? 'en' : 'zh-CN';
+      const dateInput = document.getElementById('cell-date');
+      if (dateInput) {
+        dateInput.lang = currentLang === 'en' ? 'en-GB' : 'zh-CN';
+        dateInput.placeholder = t('dateFmt');
+        dateInput.title = t('dateFmt');
+      }
       updateLangToggle();
       applyTopToolbarCollapsedState();
       updateBoxLocationBadge();
