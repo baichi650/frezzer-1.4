@@ -348,7 +348,7 @@
       border-color: #69c0ff;
       background: rgba(24,144,255,.45);
     }
-    .folder-list { max-height: 280px; }
+    .folder-list { max-height: none; flex: 1; min-height: 0; }
     .box-list { min-height: 180px; max-height: 280px; }
     .item.tree-item { background: rgba(17,42,69,.85); }
     .item.tree-item.active {
@@ -389,17 +389,18 @@
     .nav-box-row {
       flex-direction: column;
       align-items: stretch;
-      gap: 4px;
-      padding: 8px 10px;
-      margin-left: 12px;
+      gap: 2px;
+      padding: 6px 8px;
+      margin-left: 10px;
       border-left: 1px solid rgba(146,199,246,.35);
     }
     .nav-box-top { display: flex; align-items: center; gap: 6px; min-width: 0; }
     .nav-box-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .nav-box-meta {
-      font-size: 11px;
+      font-size: 10px;
       color: #a9d4f6;
-      padding-left: 24px;
+      padding-left: 20px;
+      line-height: 1.2;
     }
     .nav-more-btn {
       margin-left: auto;
@@ -412,6 +413,18 @@
       font-size: 12px;
     }
 
+    .nav-action-list { display: flex; flex-direction: column; gap: 8px; }
+    .nav-action-option {
+      width: 100%;
+      text-align: left;
+      border: 1px solid #d9d9d9;
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .nav-action-option:hover { border-color: var(--primary); color: var(--primary); }
     .folder-sort-tip {
       font-size: 11px;
       color: rgba(216,238,255,.78);
@@ -1079,6 +1092,18 @@
       </div>
     </div>
 
+    <div id="nav-action-modal-mask" class="modal-mask hidden" onclick="closeNavActionModal(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div id="nav-action-modal-title" class="modal-head">操作</div>
+        <div class="modal-body">
+          <div id="nav-action-list" class="nav-action-list"></div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn" onclick="closeNavActionModal()">关闭</button>
+        </div>
+      </div>
+    </div>
+
     <div id="box-action-modal-mask" class="modal-mask hidden" onclick="closeBoxActionModal(event)">
       <div class="modal" onclick="event.stopPropagation()">
         <div id="box-action-modal-title" class="modal-head">容器操作</div>
@@ -1135,6 +1160,7 @@
     let collapsedOverviewFolders = new Set();
     let collapsedOverviewBoxes = new Set();
     let boxActionState = { type: null, boxId: null };
+    let navActionState = { type: null, id: null };
     let folderDeleteState = { folderId: null, related: 0 };
     let gridZoom = 1;
     let zoomControlDragging = null;
@@ -2134,21 +2160,44 @@
       }
     }
 
-    function openFolderQuickMenu(fid, e) {
+    function openNavActionModal(type, id, e) {
       if (e) e.stopPropagation();
-      const action = prompt('文件夹操作：输入 1 重命名，输入 2 删除', '1');
-      if (!action) return;
-      if (action === '1') return renameFolder(fid, { stopPropagation(){} });
-      if (action === '2') return deleteFolder(fid, { stopPropagation(){} });
+      navActionState = { type, id };
+      const title = document.getElementById('nav-action-modal-title');
+      const list = document.getElementById('nav-action-list');
+      const mask = document.getElementById('nav-action-modal-mask');
+      if (!list || !mask) return;
+      if (title) title.textContent = type === 'folder' ? '文件夹操作' : '容器操作';
+      const actions = type === 'folder'
+        ? [
+            { key: 'rename-folder', label: '✎ 重命名' },
+            { key: 'delete-folder', label: '🗑 删除' }
+          ]
+        : [
+            { key: 'rename-box', label: '✎ 重命名' },
+            { key: 'move-box', label: '📁 移动' },
+            { key: 'delete-box', label: '✕ 删除' }
+          ];
+      list.innerHTML = actions.map(a => `<button class="nav-action-option" onclick="runNavAction('${a.key}')">${a.label}</button>`).join('');
+      mask.classList.remove('hidden');
     }
 
-    function openBoxQuickMenu(bid, e) {
-      if (e) e.stopPropagation();
-      const action = prompt('容器操作：输入 1 重命名，输入 2 移动，输入 3 删除', '1');
-      if (!action) return;
-      if (action === '1') return openBoxActionModal('rename', bid);
-      if (action === '2') return openBoxActionModal('move', bid);
-      if (action === '3') return openBoxActionModal('delete', bid);
+    function closeNavActionModal(e) {
+      if (e && e.target && e.target.id !== 'nav-action-modal-mask') return;
+      const mask = document.getElementById('nav-action-modal-mask');
+      if (mask) mask.classList.add('hidden');
+      navActionState = { type: null, id: null };
+    }
+
+    function runNavAction(action) {
+      const { id } = navActionState;
+      closeNavActionModal();
+      if (!id) return;
+      if (action === 'rename-folder') return renameFolder(id, { stopPropagation(){} });
+      if (action === 'delete-folder') return deleteFolder(id, { stopPropagation(){} });
+      if (action === 'rename-box') return openBoxActionModal('rename', id);
+      if (action === 'move-box') return openBoxActionModal('move', id);
+      if (action === 'delete-box') return openBoxActionModal('delete', id);
     }
 
     function renderFolderList() {
@@ -2235,13 +2284,12 @@
             <div class="nav-folder-line">
               <span class="tree-arrow tree-arrow-btn" ${arrowClick}>${arrow}</span>
               <span>📁</span>
-              <span>文件夹</span>
               <span class="nav-folder-name">${folder.name}</span>
               <span class="nav-folder-pill">[ ${count} ]</span>
               ${sortOps}
             </div>
           </div>
-          <button class="nav-more-btn" title="文件夹操作" onclick="openFolderQuickMenu('${fid}',event)">⋯</button>
+          <button class="nav-more-btn" title="文件夹操作" onclick="openNavActionModal('folder','${fid}',event)">⋯</button>
         `;
         div.onpointerdown = () => startFolderLongPress(fid);
         div.onpointerup = cancelFolderLongPress;
@@ -2264,9 +2312,8 @@
             <div class="nav-box-top" style="padding-left:${(depth + 1) * 12}px">
               <span class="tree-arrow">▸</span>
               <span>📦</span>
-              <span>容器</span>
               <span class="nav-box-name">${b.name}</span>
-              <button class="nav-more-btn" title="容器操作" onclick="openBoxQuickMenu('${bid}',event)">⋯</button>
+              <button class="nav-more-btn" title="容器操作" onclick="openNavActionModal('box','${bid}',event)">⋯</button>
             </div>
             <div class="nav-box-meta">规格 ${b.rows}×${b.cols} · 样本 ${sampleCount}</div>
           `;
