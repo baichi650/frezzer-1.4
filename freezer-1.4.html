@@ -430,11 +430,17 @@
       white-space: nowrap;
     }
     .nav-stat-item { min-width: 52px; text-align: right; }
+    .nav-stat-item.subfolders { margin-right: -4px; }
     .nav-folder-submeta .usage { margin-left: 8px; }
     .nav-folder-submeta .usage.empty { color: #ffffff; }
     .nav-folder-submeta .usage.low { color: #95f985; }
     .nav-folder-submeta .usage.mid { color: #ffcc66; }
     .nav-folder-submeta .usage.full { color: #ff6b6b; }
+    .nav-box-meta .usage { margin-left: 8px; }
+    .nav-box-meta .usage.empty { color: #ffffff; }
+    .nav-box-meta .usage.low { color: #95f985; }
+    .nav-box-meta .usage.mid { color: #ffcc66; }
+    .nav-box-meta .usage.full { color: #ff6b6b; }
     .nav-more-btn {
       margin-left: auto;
       border: 1px solid rgba(184,223,255,.45);
@@ -2356,7 +2362,7 @@
               <span class="nav-folder-name">${folder.name}</span>
               ${sortOps}
               <span class="nav-folder-stats">
-                <span class="nav-stat-item">${childIds.length}子夹</span>
+                <span class="nav-stat-item subfolders">${childIds.length}子夹</span>
                 <span class="nav-stat-item">${boxCount}盒子</span>
               </span>
               <button class="nav-more-btn" title="文件夹操作" onclick="openNavActionModal('folder','${fid}',event)">⋯</button>
@@ -2392,7 +2398,12 @@
               <span class="nav-box-name">${b.name}</span>
               <button class="nav-more-btn" title="容器操作" onclick="openNavActionModal('box','${bid}',event)">⋯</button>
             </div>
-            <div class="nav-box-meta">${sampleCount}/${(Number(b.rows)||0)*(Number(b.cols)||0)} · 空置 ${(Number(b.rows)||0)*(Number(b.cols)||0)-sampleCount}</div>
+            <div class="nav-box-meta">${sampleCount}/${(Number(b.rows)||0)*(Number(b.cols)||0)} · 空置 ${(Number(b.rows)||0)*(Number(b.cols)||0)-sampleCount}${(() => {
+              const cap = (Number(b.rows)||0)*(Number(b.cols)||0);
+              const pct = cap ? Math.round((sampleCount / cap) * 100) : 0;
+              const cls = pct === 0 ? 'empty' : (pct >= 100 ? 'full' : (pct >= 70 ? 'mid' : 'low'));
+              return `<span class="usage ${cls}">${pct}%</span>`;
+            })()}</div>
           `;
           boxDiv.onclick = () => { searchHighlightPos = null; switchBox(bid); };
           list.appendChild(boxDiv);
