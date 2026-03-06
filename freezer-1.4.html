@@ -3101,6 +3101,20 @@
       }, 150);
     }
 
+    function formatInventoryPos(pos) {
+      if (!pos) return '-';
+      const alphaNum = String(pos).match(/^([A-Za-z]+)(\d+)$/);
+      if (alphaNum) {
+        const letters = alphaNum[1].toUpperCase();
+        let row = 0;
+        for (let i = 0; i < letters.length; i++) row = row * 26 + (letters.charCodeAt(i) - 64);
+        return `${row}行${Number(alphaNum[2])}列`;
+      }
+      const dashNum = String(pos).match(/^(\d+)[-_](\d+)$/);
+      if (dashNum) return `${Number(dashNum[1])}行${Number(dashNum[2])}列`;
+      return String(pos);
+    }
+
     function openInventoryLocationsModal() {
       if (selectedPositions.size !== 1) {
         return openActionMessageModal('请先选中一个单元格后再查看全库位置。');
@@ -3137,7 +3151,7 @@
         list.innerHTML = rows.length
           ? rows.map((r, idx) => `
             <div class="inventory-location-item" data-box-id="${r.boxId}" data-pos="${r.pos}" title="点击快速跳转">
-              <div class="inventory-location-main">${idx + 1}. ${r.folderPath} / ${r.boxName} [${r.pos}]</div>
+              <div class="inventory-location-main">${idx + 1}. ${r.folderPath} / ${r.boxName} / ${formatInventoryPos(r.pos)}</div>
               <div class="inventory-location-sub">${r.rows}行${r.cols}列 · P: ${r.p} · 日期: ${r.date}</div>
             </div>
           `).join('')
