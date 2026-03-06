@@ -1710,7 +1710,6 @@
       if (!wrap) return;
       const childrenMap = getFolderChildrenMap();
       let html = '<div class="mini-tree-title">位置树</div>';
-      html += `<div class="mini-tree-node folder" onclick="setFolderFilter('all')" title="全部位置"><span class="mini-tree-prefix"></span><span class="mini-tree-arrow">▾</span><span class="mini-tree-text">全部位置</span></div>`;
 
       const prefixFor = (depth, isLast) => {
         if (depth <= 0) return '';
@@ -1725,7 +1724,9 @@
         const boxes = Object.keys(db.boxes)
           .filter(bid => db.boxes[bid]?.folderId === fid)
           .sort((a, b) => (db.boxes[a]?.name || '').localeCompare(db.boxes[b]?.name || '', 'zh-CN'));
-        const label = `${fname} (${boxes.length})`;
+        const descendantSet = new Set(getDescendantFolderIds(fid));
+        const boxCount = Object.values(db.boxes).filter(b => descendantSet.has(b.folderId)).length;
+        const label = `${fname} (${boxCount})`;
         const prefix = prefixFor(depth, isLast);
 
         html += `<div class="mini-tree-node folder" onclick="handleCollapsedFolderClick('${fid}')" title="${getFolderPathName(fid)}"><span class="mini-tree-prefix">${prefix}</span><span class="mini-tree-arrow">${expanded ? '▾' : '▸'}</span><span class="mini-tree-text">${label}</span></div>`;
@@ -2268,13 +2269,6 @@
         list.appendChild(tip);
       }
 
-      const totalBoxes = Object.keys(db.boxes).length;
-      const allItem = document.createElement('div');
-      allItem.className = 'item tree-item nav-folder-card';
-      allItem.innerHTML = `<div class="nav-folder-line"><span class="tree-arrow">▾</span><span>📁</span><span class="nav-folder-name">全部位置</span><span class="nav-folder-pill">${Object.keys(db.folders).length}区域</span></div>`;
-      allItem.onclick = () => setFolderFilter('all');
-      list.appendChild(allItem);
-
       const childrenMap = getFolderChildrenMap();
       const key = folderSearchKeyword.trim().toLowerCase();
       const visibleFolders = new Set();
@@ -2336,6 +2330,7 @@
         const arrow = expandable ? (expanded ? '▾' : '▸') : '•';
         const arrowClick = expandable ? `onclick="toggleFolderTreeExpand('${fid}',event)"` : '';
         const directBoxes = Object.values(db.boxes).filter(b => b.folderId === fid);
+        const boxCount = Object.values(db.boxes).filter(b => descendants.has(b.folderId)).length;
         const folderCapacity = directBoxes.reduce((sum, b) => sum + ((Number(b.rows) || 0) * (Number(b.cols) || 0)), 0);
         const folderStored = directBoxes.reduce((sum, b) => sum + Object.values(b.vials || {}).filter(v => v?.name).length, 0);
         div.innerHTML = `
@@ -2344,7 +2339,7 @@
               <span class="tree-arrow tree-arrow-btn" ${arrowClick}>${arrow}</span>
               <span>📁</span>
               <span class="nav-folder-name">${folder.name}</span>
-              <span class="nav-folder-pill">${directBoxes.length}盒子</span>
+              <span class="nav-folder-pill">${boxCount}盒子</span>
               ${sortOps}
               <button class="nav-more-btn" title="文件夹操作" onclick="openNavActionModal('folder','${fid}',event)">⋯</button>
             </div>
@@ -2389,15 +2384,11 @@
       const strip = document.getElementById('box-folder-strip');
       if (!strip) return;
       const folderIds = getOrderedFolderIds();
-      const total = Object.keys(db.boxes).length;
-      strip.innerHTML = [
-        `<div class="folder-chip all" onclick="setFolderFilter('all')">全部 · ${total}</div>`,
-        ...folderIds.map(fid => {
-          const descendants = new Set(getDescendantFolderIds(fid));
-          const count = Object.values(db.boxes).filter(b => descendants.has(b.folderId)).length;
-          return `<div class="folder-chip" style="color:${getFolderColor(fid)}" onclick="setFolderFilter('${fid}')">${getFolderPathName(fid)} · ${count}</div>`;
-        })
-      ].join('');
+      strip.innerHTML = folderIds.map(fid => {
+        const descendants = new Set(getDescendantFolderIds(fid));
+        const count = Object.values(db.boxes).filter(b => descendants.has(b.folderId)).length;
+        return `<div class="folder-chip" style="color:${getFolderColor(fid)}" onclick="setFolderFilter('${fid}')">${getFolderPathName(fid)} · ${count}</div>`;
+      }).join('');
     }
 
     function toggleCustomBoxSpecInputs() {
