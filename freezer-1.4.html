@@ -723,7 +723,33 @@
       border-color: #69c0ff;
       color: #69c0ff;
     }
-
+    .lang-switch {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      border: 1px solid #1890ff;
+      border-radius: 999px;
+      padding: 2px;
+      background: rgba(24,144,255,.06);
+    }
+    .lang-switch-btn {
+      min-width: 72px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: #8fc5ff;
+      padding: 8px 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .2s;
+    }
+    .lang-switch-btn.active {
+      background: #0f253f;
+      color: #d8efff;
+      box-shadow: inset 0 0 0 1px #1890ff;
+    }
 
     .modal-mask {
       position: fixed;
@@ -1038,13 +1064,13 @@
     <button id="sidebar-toggle" class="sidebar-toggle" onclick="toggleSidebar()" title="收起/展开导航栏">◀</button>
     <div id="collapsed-nav"></div>
         <section class="sidebar-panel" style="flex:1;">
-      <input id="sidebar-search" class="sidebar-search" type="text" placeholder="🔎 搜索文件夹 / 容器..." oninput="handleUnifiedSidebarSearch()" />
+      <input id="sidebar-search" class="sidebar-search" type="text" placeholder="🔎 搜索文件夹 / 容器..." data-i18n-placeholder="sidebar.search" oninput="handleUnifiedSidebarSearch()" />
       <div class="folder-sort-tip">长按文件夹项可进入排序模式</div>
       <div id="folder-list" class="list folder-list"></div>
 
 
       <div class="side-actions">
-        <button class="side-btn" onclick="openCreateModal()">+ 新建</button>
+        <button id="btn-create" class="side-btn" onclick="openCreateModal()">+ 新建</button>
       </div>
     </section>
   </aside>
@@ -1053,33 +1079,37 @@
     <div class="header">
       <div class="top-utility-bar">
         <div class="search-wrap utility-search">
-          <input id="global-search" class="tool-search" type="text" placeholder="🔎 全局搜索：细胞名/代数/条码" oninput="handleGlobalSearch()" />
+          <input id="global-search" class="tool-search" type="text" placeholder="🔎 全局搜索：细胞名/代数/条码" data-i18n-placeholder="global.search" oninput="handleGlobalSearch()" />
           <div id="search-dd" class="search-dd"></div>
         </div>
-        <span id="backup-status" class="tool-status-badge" onclick="handleBackupStatusClick()" title="点击进行开启/授权/关闭">⚠️ 未授权目录</span>
-        <button class="toolbar-toggle-btn" onclick="switchView('grid')">容器页面</button>
-        <button class="toolbar-toggle-btn" onclick="switchView('overview')">总览页面</button>
+        <span id="backup-status" class="tool-status-badge" onclick="handleBackupStatusClick()" title="点击进行开启/授权/关闭" data-i18n-title="backup.statusTitle">⚠️ 未授权目录</span>
+        <button id="btn-view-grid" class="toolbar-toggle-btn" onclick="switchView('grid')">容器页面</button>
+        <button id="btn-view-overview" class="toolbar-toggle-btn" onclick="switchView('overview')">总览页面</button>
         <div class="toolbar-toggle-bar" style="margin-bottom:0;">
           <button id="toolbar-toggle-btn" class="toolbar-toggle-btn" onclick="toggleTopToolbar()">展开工具栏</button>
+        </div>
+        <div id="lang-switch" class="lang-switch" title="语言 / Language">
+          <button id="lang-btn-zh" class="lang-switch-btn" onclick="setLanguage('zh')">中文</button>
+          <button id="lang-btn-en" class="lang-switch-btn" onclick="setLanguage('en')">EN</button>
         </div>
       </div>
       <div id="box-location-badge" class="box-location-badge hidden"></div>
 
       <div id="top-toolbar" class="tool-sketch hidden">
         <div class="tool-row" id="main-actions-card">
-          <span class="tool-label">数据操作:</span>
-          <button class="tool-link-btn" onclick="triggerImport()">导入</button>
-          <button class="tool-link-btn" onclick="exportExcel()">导出Excel</button>
-          <button class="tool-link-btn" onclick="exportJSON()">导出备份JSON</button>
+          <span id="label-data-ops" class="tool-label">数据操作:</span>
+          <button id="btn-import" class="tool-link-btn" onclick="triggerImport()">导入</button>
+          <button id="btn-export-excel" class="tool-link-btn" onclick="exportExcel()">导出Excel</button>
+          <button id="btn-export-json" class="tool-link-btn" onclick="exportJSON()">导出备份JSON</button>
           <input id="import-file" type="file" style="display:none" onchange="importJSON(event)" />
         </div>
 
         <div class="tool-row" id="backup-actions-card">
-          <span class="tool-label">自动备份:</span>
+          <span id="label-auto-backup" class="tool-label">自动备份:</span>
           <span id="backup-dir-label" class="tool-label hidden">目录:</span>
           <span id="backup-dir-top" class="hidden">auto-backups</span>
-          <span class="tool-label">格式:</span><span>JSON</span>
-          <span class="tool-label">频率:</span>
+          <span id="label-format" class="tool-label">格式:</span><span>JSON</span>
+          <span id="label-frequency" class="tool-label">频率:</span>
           <select id="backup-frequency" class="tool-select">
             <option value="30">30min</option>
             <option value="15">15min</option>
@@ -1094,7 +1124,7 @@
         </div>
 
         <details class="tool-row" style="display:block;">
-          <summary class="tool-label" style="cursor:pointer;">高级/日志（折叠，默认收起）</summary>
+          <summary id="label-advanced-log" class="tool-label" style="cursor:pointer;">高级/日志（折叠，默认收起）</summary>
           <div class="tool-mini-log" style="margin-top:8px;">- 最近备份：<span id="last-backup-log">--</span></div>
           <div class="tool-mini-log">- ...</div>
         </details>
@@ -1121,11 +1151,11 @@
             <span id="sel-count" style="display:none">0</span>
             <div style="margin-top:6px;">全库总余量: <span id="total-inv" style="font-size:22px;font-weight:700;cursor:pointer;text-decoration:underline dotted;" title="点击查看该细胞所有库存位置" onclick="openInventoryLocationsModal()">0</span> 管</div>
           </div>
-          <label>细胞名称 (Name)</label>
+          <label id="label-cell-name">细胞名称 (Name)</label>
           <input id="cell-name" class="input" type="text" placeholder="例如: HEK293T" oninput="updateLiveStats()" />
-          <label>代数 (P)</label>
+          <label id="label-cell-p">代数 (P)</label>
           <input id="cell-p" class="input" type="text" />
-          <label>冻存日期</label>
+          <label id="label-cell-date">冻存日期</label>
           <input id="cell-date" class="input" type="date" />
           <div class="plain-action-wrap">
             <div class="plain-action-row single">
@@ -1133,26 +1163,26 @@
                 <span>多选</span><span class="switch-indicator">关</span>
               </button>
             </div>
-            <div class="plain-action-title">编辑</div>
+            <div id="label-edit" class="plain-action-title">编辑</div>
             <div class="plain-action-row">
               <button class="plain-btn" onclick="copySelectedCells()">📋 <strong>复制</strong></button>
               <button class="plain-btn" onclick="pasteToSelectedCells()">📥 <strong>粘贴</strong></button>
             </div>
-            <div class="plain-action-title">提交</div>
+            <div id="label-submit" class="plain-action-title">提交</div>
             <button class="plain-btn primary" style="margin-bottom:8px" onclick="saveBatch()">✅ <strong>保存</strong></button>
             <button class="plain-btn" onclick="clearBatch()">⛔ <strong>出库</strong></button>
           </div>
         </div>
 
         <div class="card">
-          <h3 style="color:var(--danger)">⚠️ 低库存预警</h3>
+          <h3 id="warn-title" style="color:var(--danger)">⚠️ 低库存预警</h3>
           <div id="warn-list" class="warn-list"></div>
         </div>
       </div>
     </section>
 
     <section id="overview-view" class="overview-wrap card">
-      <h3>📊 文件夹/容器总览</h3>
+      <h3 id="overview-title">📊 文件夹/容器总览</h3>
       <div id="overview-folder-strip" class="overview-filter"></div>
       <div id="overview-scroll" class="overview-scroll" onwheel="handleOverviewWheel(event)">
         <div id="overview-tree" class="overview-tree"></div>
@@ -1162,11 +1192,11 @@
 
     <div id="create-modal-mask" class="modal-mask hidden" onclick="closeCreateModal(event)">
       <div class="modal" onclick="event.stopPropagation()">
-        <div class="modal-head">新建</div>
+        <div id="create-modal-title" class="modal-head">新建</div>
         <div class="modal-body">
           <div class="row">
-            <button class="btn" style="flex:1" onclick="closeCreateModal(); addFolder();">新建文件夹</button>
-            <button class="btn primary" style="flex:1" onclick="closeCreateModal(); addBox();">新建容器</button>
+            <button id="btn-create-folder" class="btn" style="flex:1" onclick="closeCreateModal(); addFolder();">新建文件夹</button>
+            <button id="btn-create-box" class="btn primary" style="flex:1" onclick="closeCreateModal(); addBox();">新建容器</button>
           </div>
         </div>
       </div>
@@ -1343,6 +1373,7 @@
     const TOP_TOOLBAR_COLLAPSED_KEY = 'cell_freezer_top_toolbar_collapsed';
     const HEADER_SECTION_COLLAPSE_KEY = 'cell_freezer_header_section_collapse_state';
     const SIDEBAR_COLLAPSED_KEY = 'cell_freezer_sidebar_collapsed';
+    const LANG_KEY = 'cell_freezer_lang';
 
     let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { folders: {}, boxes: {} };
     let currentBoxId = null;
@@ -1367,6 +1398,37 @@
     let folderDeleteState = { folderId: null, related: 0 };
     let pendingClearSelection = [];
     let pendingClearBoxId = null;
+    let currentLang = localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'zh';
+    const I18N = {
+      zh: {
+        sidebarSearch: '🔎 搜索文件夹 / 容器...', globalSearch: '🔎 全局搜索：细胞名/代数/条码',
+        create: '+ 新建', viewGrid: '容器页面', viewOverview: '总览页面', toolbarExpand: '展开工具栏', toolbarCollapse: '收起工具栏',
+        dataOps: '数据操作:', import: '导入', exportExcel: '导出Excel', exportJson: '导出备份JSON', autoBackup: '自动备份:', format: '格式:', freq: '频率:',
+        backupNow: '立即备份', backupAuth: '授权备份目录', backupOff: '关闭自动备份', advLog: '高级/日志（折叠，默认收起）',
+        cellName: '细胞名称 (Name)', cellP: '代数 (P)', cellDate: '冻存日期', edit: '编辑', submit: '提交', warnTitle: '⚠️ 低库存预警',
+        overviewTitle: '📊 文件夹/容器总览', createTitle: '新建', createFolder: '新建文件夹', createBox: '新建容器',
+        statusTitle: '点击进行开启/授权/关闭', tip: '提示', ok: '知道了', close: '关闭',
+        locBadge: '位置: {folder} · 容器: {box} ({rows}x{cols})',
+        msgSelectOne: '请先选中一个单元格后再查看全库位置。', msgNoName: '当前单元格没有细胞名称，无法查询库存位置。',
+        msgNoStock: '✅ 库存充足', msgRemain: '余{count}', inventoryTitle: '{name} · 库存位置（{count}）', inventoryEmpty: '未找到库存位置。',
+        copyNeedBox: '请先选择容器。', copyNeedCell: '请先选择单元格。', pasteNeedCell: '请先选择粘贴目标单元格。',
+        saveNeedCell: '请先选择格子。', clearNeedCell: '请先选择需要出库的单元格。'
+      },
+      en: {
+        sidebarSearch: '🔎 Search folders / boxes...', globalSearch: '🔎 Global search: name / passage / barcode',
+        create: '+ New', viewGrid: 'Box View', viewOverview: 'Overview', toolbarExpand: 'Expand Toolbar', toolbarCollapse: 'Collapse Toolbar',
+        dataOps: 'Data:', import: 'Import', exportExcel: 'Export Excel', exportJson: 'Export Backup JSON', autoBackup: 'Auto Backup:', format: 'Format:', freq: 'Frequency:',
+        backupNow: 'Backup Now', backupAuth: 'Authorize Backup Folder', backupOff: 'Disable Auto Backup', advLog: 'Advanced / Logs (collapsed by default)',
+        cellName: 'Cell Name', cellP: 'Passage (P)', cellDate: 'Freeze Date', edit: 'Edit', submit: 'Apply', warnTitle: '⚠️ Low Stock Alert',
+        overviewTitle: '📊 Folder / Box Overview', createTitle: 'Create', createFolder: 'New Folder', createBox: 'New Box',
+        statusTitle: 'Click to enable/authorize/disable', tip: 'Notice', ok: 'OK', close: 'Close',
+        locBadge: 'Location: {folder} · Box: {box} ({rows}x{cols})',
+        msgSelectOne: 'Select exactly one cell before checking global locations.', msgNoName: 'Selected cell has no name, unable to query inventory locations.',
+        msgNoStock: '✅ Stock is sufficient', msgRemain: '{count} left', inventoryTitle: '{name} · Inventory Locations ({count})', inventoryEmpty: 'No inventory locations found.',
+        copyNeedBox: 'Please select a box first.', copyNeedCell: 'Please select cell(s) first.', pasteNeedCell: 'Please select target cell(s) first.',
+        saveNeedCell: 'Please select cell(s) first.', clearNeedCell: 'Please select cells to clear first.'
+      }
+    };
     let gridZoom = 1;
     let zoomControlDragging = null;
     const savedEnabledState = localStorage.getItem(AUTO_BACKUP_ENABLED_KEY);
@@ -1955,6 +2017,73 @@
     }
 
 
+    function t(key, vars = {}) {
+      const pack = I18N[currentLang] || I18N.zh;
+      let text = pack[key] ?? I18N.zh[key] ?? key;
+      Object.keys(vars).forEach(k => { text = text.replace(new RegExp(`\{${k}\}`, 'g'), vars[k]); });
+      return text;
+    }
+
+    function updateLangToggle() {
+      const zhBtn = document.getElementById('lang-btn-zh');
+      const enBtn = document.getElementById('lang-btn-en');
+      if (zhBtn) zhBtn.classList.toggle('active', currentLang === 'zh');
+      if (enBtn) enBtn.classList.toggle('active', currentLang === 'en');
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang === 'en' ? 'en' : 'zh';
+      localStorage.setItem(LANG_KEY, currentLang);
+      applyI18n();
+    }
+
+    function applyI18n() {
+      const map = {
+        'sidebar-search': ['placeholder', t('sidebarSearch')],
+        'global-search': ['placeholder', t('globalSearch')],
+        'btn-create': ['text', t('create')],
+        'btn-view-grid': ['text', t('viewGrid')],
+        'btn-view-overview': ['text', t('viewOverview')],
+        'label-data-ops': ['text', t('dataOps')],
+        'btn-import': ['text', t('import')],
+        'btn-export-excel': ['text', t('exportExcel')],
+        'btn-export-json': ['text', t('exportJson')],
+        'label-auto-backup': ['text', t('autoBackup')],
+        'label-format': ['text', t('format')],
+        'label-frequency': ['text', t('freq')],
+        'backup-now-btn': ['text', t('backupNow')],
+        'backup-folder-btn': ['text', t('backupAuth')],
+        'backup-toggle-btn': ['text', t('backupOff')],
+        'label-advanced-log': ['text', t('advLog')],
+        'label-cell-name': ['text', t('cellName')],
+        'label-cell-p': ['text', t('cellP')],
+        'label-cell-date': ['text', t('cellDate')],
+        'label-edit': ['text', t('edit')],
+        'label-submit': ['text', t('submit')],
+        'warn-title': ['text', t('warnTitle')],
+        'overview-title': ['text', t('overviewTitle')],
+        'create-modal-title': ['text', t('createTitle')],
+        'btn-create-folder': ['text', t('createFolder')],
+        'btn-create-box': ['text', t('createBox')]
+      };
+      Object.entries(map).forEach(([id, [kind, val]]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (kind === 'placeholder') el.placeholder = val;
+        else el.textContent = val;
+      });
+      const backupStatus = document.getElementById('backup-status');
+      if (backupStatus) backupStatus.title = t('statusTitle');
+      const okBtn = document.querySelector('#action-message-modal-mask .btn.primary');
+      if (okBtn) okBtn.textContent = t('ok');
+      const closeBtns = document.querySelectorAll('#nav-action-modal-mask .btn, #inventory-locations-modal-mask .btn');
+      closeBtns.forEach(el => el.textContent = t('close'));
+      updateLangToggle();
+      applyTopToolbarCollapsedState();
+      updateBoxLocationBadge();
+      updateWarningBoard();
+    }
+
     function isTopToolbarCollapsed() {
       const raw = localStorage.getItem(TOP_TOOLBAR_COLLAPSED_KEY);
       if (raw === null) {
@@ -1970,7 +2099,7 @@
       if (!toolbar || !btn) return;
       const collapsed = isTopToolbarCollapsed();
       toolbar.classList.toggle('hidden', collapsed);
-      btn.textContent = collapsed ? '展开工具栏' : '收起工具栏';
+      btn.textContent = collapsed ? t('toolbarExpand') : t('toolbarCollapse');
     }
 
     function toggleTopToolbar() {
@@ -2013,6 +2142,7 @@
       if (!Object.keys(db.boxes).length) document.getElementById('empty-tip').style.display = 'block';
       updateBoxLocationBadge();
       updateMultiSelectButton();
+      applyI18n();
     }
 
     function getFolderChildrenMap() {
@@ -2799,7 +2929,7 @@
       }
       const box = db.boxes[currentBoxId];
       const folderPath = getFolderPathName(box.folderId) || '未分类';
-      badge.textContent = `位置: ${folderPath} · 容器: ${box.name} (${box.rows}x${box.cols})`;
+      badge.textContent = t('locBadge', { folder: folderPath, box: box.name, rows: box.rows, cols: box.cols });
       badge.classList.remove('hidden');
     }
 
@@ -3033,7 +3163,7 @@
       }
     }
 
-    function openActionMessageModal(message, title = '提示') {
+    function openActionMessageModal(message, title = t('tip')) {
       const mask = document.getElementById('action-message-modal-mask');
       const titleEl = document.getElementById('action-message-title');
       const contentEl = document.getElementById('action-message-content');
@@ -3117,11 +3247,11 @@
 
     function openInventoryLocationsModal() {
       if (selectedPositions.size !== 1) {
-        return openActionMessageModal('请先选中一个单元格后再查看全库位置。');
+        return openActionMessageModal(t('msgSelectOne'));
       }
       const name = document.getElementById('cell-name').value.trim();
       if (!name) {
-        return openActionMessageModal('当前单元格没有细胞名称，无法查询库存位置。');
+        return openActionMessageModal(t('msgNoName'));
       }
       const normalized = name.toLowerCase();
       const rows = [];
@@ -3146,7 +3276,7 @@
       const title = document.getElementById('inventory-locations-modal-title');
       const list = document.getElementById('inventory-locations-list');
       const mask = document.getElementById('inventory-locations-modal-mask');
-      if (title) title.textContent = `${name} · 库存位置（${rows.length}）`;
+      if (title) title.textContent = t('inventoryTitle', { name, count: rows.length });
       if (list) {
         list.innerHTML = rows.length
           ? rows.map((r, idx) => `
@@ -3155,7 +3285,7 @@
               <div class="inventory-location-sub">${r.rows}行${r.cols}列 · P: ${r.p} · 日期: ${r.date}</div>
             </div>
           `).join('')
-          : '<div style="color:#999;text-align:center;padding:8px 0;">未找到库存位置。</div>';
+          : `<div style="color:#999;text-align:center;padding:8px 0;">${t('inventoryEmpty')}</div>`;
         list.querySelectorAll('.inventory-location-item').forEach(el => {
           el.addEventListener('click', () => jumpToInventoryLocation(el.dataset.boxId, el.dataset.pos));
         });
@@ -3164,8 +3294,8 @@
     }
 
     async function copySelectedCells() {
-      if (!currentBoxId || !db.boxes[currentBoxId]) return openActionMessageModal('请先选择容器。');
-      if (!selectedPositions.size) return openActionMessageModal('请先选择单元格。');
+      if (!currentBoxId || !db.boxes[currentBoxId]) return openActionMessageModal(t('copyNeedBox'));
+      if (!selectedPositions.size) return openActionMessageModal(t('copyNeedCell'));
       const box = db.boxes[currentBoxId];
       const cells = [...selectedPositions].map(pos => ({ pos, ...(box.vials[pos] || {}) }));
       const text = JSON.stringify(cells, null, 2);
@@ -3178,8 +3308,8 @@
     }
 
     async function pasteToSelectedCells() {
-      if (!currentBoxId || !db.boxes[currentBoxId]) return openActionMessageModal('请先选择容器。');
-      if (!selectedPositions.size) return openActionMessageModal('请先选择粘贴目标单元格。');
+      if (!currentBoxId || !db.boxes[currentBoxId]) return openActionMessageModal(t('copyNeedBox'));
+      if (!selectedPositions.size) return openActionMessageModal(t('pasteNeedCell'));
       let payload = [];
       try {
         const text = await navigator.clipboard.readText();
@@ -3257,7 +3387,7 @@
     }
 
     function saveBatch() {
-      if (!currentBoxId || !selectedPositions.size) return openActionMessageModal('请先选择格子。');
+      if (!currentBoxId || !selectedPositions.size) return openActionMessageModal(t('saveNeedCell'));
       const name = document.getElementById('cell-name').value.trim();
       if (!name) return openActionMessageModal('细胞名称必填。');
 
@@ -3277,7 +3407,7 @@
     }
 
     function clearBatch() {
-      if (!selectedPositions.size) return openActionMessageModal('请先选择需要出库的单元格。');
+      if (!selectedPositions.size) return openActionMessageModal(t('clearNeedCell'));
       openClearConfirmModal();
     }
 
@@ -3332,8 +3462,8 @@
       }));
       const lows = Object.keys(counts).filter(name => counts[name] <= 3);
       w.innerHTML = lows.length
-        ? lows.map(name => `<div style="padding:8px;display:flex;justify-content:space-between;border-bottom:1px solid #f0f0f0"><span>${name}</span><b style="color:var(--danger)">余${counts[name]}</b></div>`).join('')
-        : '<div style="color:#bfbfbf;text-align:center;">✅ 库存充足</div>';
+        ? lows.map(name => `<div style="padding:8px;display:flex;justify-content:space-between;border-bottom:1px solid #f0f0f0"><span>${name}</span><b style="color:var(--danger)">${t('msgRemain', { count: counts[name] })}</b></div>`).join('')
+        : `<div style="color:#bfbfbf;text-align:center;">${t('msgNoStock')}</div>`;
     }
 
     function switchView(view) {
