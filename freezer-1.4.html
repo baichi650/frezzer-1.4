@@ -980,6 +980,21 @@
       justify-content: center;
     }
     .stats { border: 1px solid #91d5ff; background: #e6f7ff; border-radius: 8px; padding: 10px; margin-bottom: 12px; }
+    .inventory-total-line {
+      margin-top: 6px;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      flex-wrap: wrap;
+      line-height: 1.2;
+    }
+    #total-inv {
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: underline dotted;
+    }
+    #total-inv-unit { font-size: 14px; }
     .stats.low { border-color: #ffa39e; background: #fff1f0; color: var(--danger); }
     .muted { color: var(--muted); font-size: 12px; }
     .warn-list { max-height: 180px; overflow: auto; font-size: 13px; }
@@ -1195,7 +1210,7 @@
         <div class="card">
           <div id="stats" class="stats">
             <span id="sel-count" style="display:none">0</span>
-            <div style="margin-top:6px;"><span id="total-inv-label">全库总余量</span>: <span id="total-inv" style="font-size:22px;font-weight:700;cursor:pointer;text-decoration:underline dotted;" title="点击查看该细胞所有库存位置" onclick="openInventoryLocationsModal()">0</span> <span id="total-inv-unit">管</span></div>
+            <div class="inventory-total-line"><span id="total-inv-label">全库总余量</span>: <span id="total-inv" title="点击查看该细胞所有库存位置" onclick="openInventoryLocationsModal()">0</span> <span id="total-inv-unit">管</span></div>
           </div>
           <label id="label-cell-name">细胞名称 (Name)</label>
           <input id="cell-name" class="input" type="text" placeholder="例如: HEK293T" oninput="updateLiveStats()" />
@@ -1455,7 +1470,7 @@
         create: '+ 新建', viewGrid: '容器页面', viewOverview: '总览页面', toolbarExpand: '展开工具栏', toolbarCollapse: '收起工具栏',
         dataOps: '数据操作:', import: '导入', exportExcel: '导出Excel', exportJson: '导出备份JSON', autoBackup: '自动备份:', dir: '目录:', format: '格式:', freq: '频率:',
         backupNow: '立即备份', backupAuth: '授权备份目录', backupOff: '关闭自动备份', advLog: '高级/日志（折叠，默认收起）', quickActions: '快捷操作:', folderSortTip: '长按文件夹项可进入排序模式', changeDir: '更改目录', runBackupNow: '立即备份',
-        cellName: '细胞名称 (Name)', cellP: '代数 (P)', cellDate: '冻存日期', dateFmt: 'yyyy/mm/dd', edit: '编辑', submit: '提交', warnTitle: '⚠️ 低库存预警', totalInventory: '全库总余量', tubeUnit: '管', multiSelect: '多选', on: '开', off: '关', copy: '复制', paste: '粘贴', save: '保存', clear: '出库',
+        cellName: '细胞名称 (Name)', cellP: '代数 (P)', cellDate: '冻存日期', dateFmt: 'yyyy/mm/dd', edit: '编辑', submit: '提交', warnTitle: '⚠️ 低库存预警', totalInventory: '全库总余量', totalInvHint: '点击查看该细胞所有库存位置', tubeUnit: '管', multiSelect: '多选', on: '开', off: '关', copy: '复制', paste: '粘贴', save: '保存', clear: '出库',
         overviewTitle: '📊 文件夹/容器总览', createTitle: '新建', createFolder: '新建文件夹', createBox: '新建容器',
         statusTitle: '点击进行开启/授权/关闭', tip: '提示', ok: '知道了', close: '关闭',
         locBadge: '位置: {folder} · 容器: {box} ({rows}x{cols})',
@@ -1469,7 +1484,7 @@
         create: '+ New', viewGrid: 'Box View', viewOverview: 'Overview', toolbarExpand: 'Expand Toolbar', toolbarCollapse: 'Collapse Toolbar',
         dataOps: 'Data:', import: 'Import', exportExcel: 'Export Excel', exportJson: 'Export Backup JSON', autoBackup: 'Auto Backup:', dir: 'Dir:', format: 'Format:', freq: 'Frequency:',
         backupNow: 'Backup Now', backupAuth: 'Authorize Backup Folder', backupOff: 'Disable Auto Backup', advLog: 'Advanced / Logs (collapsed by default)', quickActions: 'Quick Actions:', folderSortTip: 'Long press a folder item to enter sort mode', changeDir: 'Change Folder', runBackupNow: 'Run Backup Now',
-        cellName: 'Cell Name', cellP: 'Passage (P)', cellDate: 'Freeze Date', dateFmt: 'yyyy/mm/dd', edit: 'Edit', submit: 'Apply', warnTitle: '⚠️ Low Stock Alert', totalInventory: 'Total Inventory', tubeUnit: 'tubes', multiSelect: 'Multi-select', on: 'ON', off: 'OFF', copy: 'Copy', paste: 'Paste', save: 'Save', clear: 'Clear',
+        cellName: 'Cell Name', cellP: 'Passage (P)', cellDate: 'Freeze Date', dateFmt: 'yyyy/mm/dd', edit: 'Edit', submit: 'Apply', warnTitle: '⚠️ Low Stock Alert', totalInventory: 'Total Inventory', totalInvHint: 'Click to view all storage locations for this cell', tubeUnit: 'tubes', multiSelect: 'Multi-select', on: 'ON', off: 'OFF', copy: 'Copy', paste: 'Paste', save: 'Save', clear: 'Clear',
         overviewTitle: '📊 Folder / Box Overview', createTitle: 'Create', createFolder: 'New Folder', createBox: 'New Box',
         statusTitle: 'Click to enable/authorize/disable', tip: 'Notice', ok: 'OK', close: 'Close',
         locBadge: 'Location: {folder} · Box: {box} ({rows}x{cols})',
@@ -2208,6 +2223,8 @@
         dateInput.title = t('dateFmt');
       }
       if (datePicker) datePicker.lang = 'en-GB';
+      const totalInv = document.getElementById('total-inv');
+      if (totalInv) totalInv.title = t('totalInvHint');
       updateLangToggle();
       applyTopToolbarCollapsedState();
       renderFolderList();
