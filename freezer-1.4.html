@@ -1027,6 +1027,7 @@
           <input id="cell-date" class="input" type="date" />
           <button class="btn" style="width:100%" onclick="toggleMultiSelectMode()" id="multi-select-btn">多选：关</button>
           <button class="btn" style="width:100%;margin-top:8px" onclick="copySelectedCells()">复制</button>
+          <button class="btn" style="width:100%;margin-top:8px" onclick="pasteToSelectedCells()">粘贴</button>
           <button class="btn primary" style="width:100%;margin-top:8px" onclick="saveBatch()">保存</button>
           <button class="btn" style="width:100%;margin-top:8px" onclick="clearBatch()">出库</button>
         </div>
@@ -2897,6 +2898,48 @@
       } catch {
         alert('复制失败，请检查浏览器剪贴板权限。');
       }
+    }
+
+    async function pasteToSelectedCells() {
+      if (!currentBoxId || !db.boxes[currentBoxId]) return alert('请先选择容器。');
+      if (!selectedPositions.size) return alert('请先选择粘贴目标单元格。');
+      let payload = [];
+      try {
+        const text = await navigator.clipboard.readText();
+        const parsed = JSON.parse(text);
+        if (!Array.isArray(parsed) || !parsed.length) throw new Error('empty');
+        payload = parsed.map(item => ({
+          name: item?.name || '',
+          p: item?.p || '',
+          date: item?.date || ''
+        }));
+      } catch {
+        return alert('粘贴失败：剪贴板内容不是可用的复制数据。');
+      }
+
+      const targets = [...selectedPositions];
+      const box = db.boxes[currentBoxId];
+
+      if (payload.length === 1) {
+        targets.forEach(pos => {
+          if (payload[0].name) box.vials[pos] = { ...payload[0] };
+          else delete box.vials[pos];
+        });
+      } else if (payload.length === targets.length) {
+        targets.forEach((pos, idx) => {
+          if (payload[idx].name) box.vials[pos] = { ...payload[idx] };
+          else delete box.vials[pos];
+        });
+      } else {
+        return alert('粘贴失败：多条复制数据时，目标单元格数量需与复制数量一致，或仅复制1条用于批量覆盖。');
+      }
+
+      save();
+      renderGrid();
+      updatePanel();
+      updateWarningBoard();
+      updateOverview();
+      alert(`已粘贴到 ${targets.length} 个单元格。`);
     }
 
     function toggleSelect(pos) {
