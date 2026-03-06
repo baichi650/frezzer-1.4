@@ -897,6 +897,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
+    .plain-action-row.single { grid-template-columns: 1fr; }
     .plain-btn {
       border: 1px solid #d8dde6;
       background: #fff;
@@ -913,6 +914,43 @@
       border-color: #91caff;
       background: #e6f4ff;
       color: #0958d9;
+    }
+    .switch-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-weight: 700;
+    }
+    .switch-indicator {
+      min-width: 44px;
+      text-align: center;
+      border-radius: 999px;
+      padding: 2px 8px;
+      border: 1px solid #d9d9d9;
+      background: #fff;
+      color: #777;
+      font-size: 12px;
+    }
+    .switch-btn.on {
+      border-color: #95de64;
+      background: #f6ffed;
+      color: #237804;
+    }
+    .switch-btn.on .switch-indicator {
+      border-color: #95de64;
+      background: #52c41a;
+      color: #fff;
+    }
+    .switch-btn.off {
+      border-color: #ffd591;
+      background: #fff7e6;
+      color: #ad6800;
+    }
+    .switch-btn.off .switch-indicator {
+      border-color: #ffd591;
+      background: #faad14;
+      color: #fff;
     }
 
     .overview-wrap { display: none; height: 100%; }
@@ -1060,18 +1098,19 @@
           <label>冻存日期</label>
           <input id="cell-date" class="input" type="date" />
           <div class="plain-action-wrap">
-            <div class="plain-action-row">
-              <button class="plain-btn" onclick="toggleMultiSelectMode()" id="multi-select-btn">[ <strong>多选</strong> (switch:关) ]</button>
-              <div class="plain-btn" style="cursor:default;opacity:.75">(小写 plain text)</div>
+            <div class="plain-action-row single">
+              <button class="plain-btn switch-btn off" onclick="toggleMultiSelectMode()" id="multi-select-btn">
+                <span>多选</span><span class="switch-indicator">关</span>
+              </button>
             </div>
             <div class="plain-action-title">编辑</div>
             <div class="plain-action-row">
-              <button class="plain-btn" onclick="copySelectedCells()">[ 📋 <strong>复制</strong> ]</button>
-              <button class="plain-btn" onclick="pasteToSelectedCells()">[ 📥 <strong>粘贴</strong> ]</button>
+              <button class="plain-btn" onclick="copySelectedCells()">📋 <strong>复制</strong></button>
+              <button class="plain-btn" onclick="pasteToSelectedCells()">📥 <strong>粘贴</strong></button>
             </div>
             <div class="plain-action-title">提交</div>
-            <button class="plain-btn primary" style="margin-bottom:8px" onclick="saveBatch()">[ ✅ <strong>保存</strong>到所选位置 ]</button>
-            <button class="plain-btn" onclick="clearBatch()">[ ⛔ <strong>出库</strong>（清空所选） ]</button>
+            <button class="plain-btn primary" style="margin-bottom:8px" onclick="saveBatch()">✅ <strong>保存</strong></button>
+            <button class="plain-btn" onclick="clearBatch()">⛔ <strong>出库</strong></button>
           </div>
         </div>
 
@@ -2913,8 +2952,10 @@
     function updateMultiSelectButton() {
       const btn = document.getElementById('multi-select-btn');
       if (!btn) return;
-      btn.textContent = `[ 多选 (switch:${multiSelectMode ? '开' : '关'}) ]`;
-      btn.classList.toggle('primary', multiSelectMode);
+      btn.classList.toggle('on', multiSelectMode);
+      btn.classList.toggle('off', !multiSelectMode);
+      const indicator = btn.querySelector('.switch-indicator');
+      if (indicator) indicator.textContent = multiSelectMode ? '开' : '关';
     }
 
     function toggleMultiSelectMode() {
