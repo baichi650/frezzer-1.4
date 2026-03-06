@@ -1025,8 +1025,10 @@
           <input id="cell-p" class="input" type="text" />
           <label>冻存日期</label>
           <input id="cell-date" class="input" type="date" />
-          <button class="btn primary" style="width:100%" onclick="saveBatch()">保存并取消选择</button>
-          <button class="btn" style="width:100%;margin-top:8px" onclick="clearBatch()">清空所选位置 (出库)</button>
+          <button class="btn" style="width:100%" onclick="toggleMultiSelectMode()" id="multi-select-btn">多选：关</button>
+          <button class="btn" style="width:100%;margin-top:8px" onclick="copySelectedCells()">复制</button>
+          <button class="btn primary" style="width:100%;margin-top:8px" onclick="saveBatch()">保存</button>
+          <button class="btn" style="width:100%;margin-top:8px" onclick="clearBatch()">出库</button>
         </div>
 
         <div class="card">
@@ -1202,6 +1204,7 @@
     let currentBoxId = null;
     let currentFolderId = 'all';
     let selectedPositions = new Set();
+    let multiSelectMode = false;
     let searchHighlightPos = null;
     let draggedItemPos = null;
     let currentOverviewFolderId = 'all';
@@ -1863,6 +1866,7 @@
       updateGridZoom();
       if (!Object.keys(db.boxes).length) document.getElementById('empty-tip').style.display = 'block';
       updateBoxLocationBadge();
+      updateMultiSelectButton();
     }
 
     function getFolderChildrenMap() {
@@ -2862,8 +2866,47 @@
       updateOverview();
     }
 
+    function updateMultiSelectButton() {
+      const btn = document.getElementById('multi-select-btn');
+      if (!btn) return;
+      btn.textContent = `多选：${multiSelectMode ? '开' : '关'}`;
+      btn.classList.toggle('primary', multiSelectMode);
+    }
+
+    function toggleMultiSelectMode() {
+      multiSelectMode = !multiSelectMode;
+      updateMultiSelectButton();
+      if (!multiSelectMode && selectedPositions.size > 1) {
+        const first = [...selectedPositions][0];
+        selectedPositions.clear();
+        if (first) selectedPositions.add(first);
+        renderGrid();
+        updatePanel();
+      }
+    }
+
+    async function copySelectedCells() {
+      if (!currentBoxId || !db.boxes[currentBoxId]) return alert('请先选择容器。');
+      if (!selectedPositions.size) return alert('请先选择单元格。');
+      const box = db.boxes[currentBoxId];
+      const cells = [...selectedPositions].map(pos => ({ pos, ...(box.vials[pos] || {}) }));
+      const text = JSON.stringify(cells, null, 2);
+      try {
+        await navigator.clipboard.writeText(text);
+        alert(`已复制 ${cells.length} 个单元格信息。`);
+      } catch {
+        alert('复制失败，请检查浏览器剪贴板权限。');
+      }
+    }
+
     function toggleSelect(pos) {
-      if (selectedPositions.has(pos)) selectedPositions.delete(pos); else selectedPositions.add(pos);
+      if (multiSelectMode) {
+        if (selectedPositions.has(pos)) selectedPositions.delete(pos);
+        else selectedPositions.add(pos);
+      } else {
+        selectedPositions.clear();
+        selectedPositions.add(pos);
+      }
       renderGrid();
       updatePanel();
     }
