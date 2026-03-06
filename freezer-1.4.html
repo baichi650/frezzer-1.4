@@ -1038,6 +1038,22 @@
       </div>
     </div>
 
+    <div id="rename-folder-modal-mask" class="modal-mask hidden" onclick="closeRenameFolderModal(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-head">重命名文件夹</div>
+        <div class="modal-body">
+          <div class="modal-field">
+            <label>文件夹名称</label>
+            <input id="rename-folder-name" type="text" placeholder="请输入新的文件夹名称" />
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn" onclick="closeRenameFolderModal()">取消</button>
+          <button class="btn primary" onclick="submitRenameFolderModal()">保存</button>
+        </div>
+      </div>
+    </div>
+
     <div id="delete-folder-modal-mask" class="modal-mask hidden" onclick="closeDeleteFolderModal(event)">
       <div class="modal" onclick="event.stopPropagation()">
         <div class="modal-head">删除文件夹</div>
@@ -1161,6 +1177,7 @@
     let collapsedOverviewBoxes = new Set();
     let boxActionState = { type: null, boxId: null };
     let navActionState = { type: null, id: null };
+    let folderRenameId = null;
     let folderDeleteState = { folderId: null, related: 0 };
     let gridZoom = 1;
     let zoomControlDragging = null;
@@ -2057,15 +2074,36 @@
     }
 
     function renameFolder(id, e) {
-      e.stopPropagation();
-      const next = prompt('请输入新的文件夹名称：', db.folders[id]?.name || '');
-      if (!next) return;
-      db.folders[id].name = next.trim();
+      if (e && e.stopPropagation) e.stopPropagation();
+      const folder = db.folders[id];
+      if (!folder) return;
+      folderRenameId = id;
+      const input = document.getElementById('rename-folder-name');
+      if (input) input.value = folder.name || '';
+      const mask = document.getElementById('rename-folder-modal-mask');
+      if (mask) mask.classList.remove('hidden');
+      setTimeout(() => input?.focus(), 30);
+    }
+
+    function closeRenameFolderModal(e) {
+      if (e && e.target && e.target.id !== 'rename-folder-modal-mask') return;
+      const mask = document.getElementById('rename-folder-modal-mask');
+      if (mask) mask.classList.add('hidden');
+      folderRenameId = null;
+    }
+
+    function submitRenameFolderModal() {
+      if (!folderRenameId || !db.folders[folderRenameId]) return closeRenameFolderModal();
+      const next = (document.getElementById('rename-folder-name')?.value || '').trim();
+      if (!next) return alert('请输入新的文件夹名称。');
+      db.folders[folderRenameId].name = next;
       save();
+      closeRenameFolderModal();
       renderFolderOptions();
       renderFolderList();
       renderBoxFolderStrip();
       renderBoxList();
+      renderCollapsedNav();
       renderOverviewFolderStrip();
       updateOverview();
     }
